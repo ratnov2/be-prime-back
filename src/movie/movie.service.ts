@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { ModelType, DocumentType } from '@typegoose/typegoose/lib/types'
 import { Types } from 'mongoose'
 import { InjectModel } from 'nestjs-typegoose'
-import { TelegramService } from 'src/telegram/telegram.service'
+import { TelegramService } from '../telegram/telegram.service'
 
 import { CreateMovieDto } from './dto/create-movie.dto'
 import { MovieModel } from './movie.model'

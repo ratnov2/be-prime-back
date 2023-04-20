@@ -4,7 +4,7 @@ import { InjectModel } from 'nestjs-typegoose'
 import { Types } from 'mongoose'
 import { RatingModel } from './rating.model'
 import { SetRatingDto } from './dto/set-rating.dto'
-import { MovieService } from 'src/movie/movie.service'
+import { MovieService } from '../movie/movie.service'
 
 @Injectable()
 export class RatingService {
