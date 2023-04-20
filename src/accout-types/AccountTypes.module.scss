@@ -1,0 +1,11 @@
+.accountTypes{
+  .elements{
+    @apply flex justify-between;
+    .element{
+      img{
+        @apply w-10 h-10;
+
+      }
+    }
+  }
+}
