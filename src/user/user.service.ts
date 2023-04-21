@@ -53,18 +53,18 @@ export class UserService {
 			})
 			.exec()
 			.then((data) => {
-				return data.favorites
+				//return data.favorites
 			})
 	}
 
 	async toggleFavorite(movieId: Types.ObjectId, user: UserModel) {
-		const { favorites, _id } = user
+		//const { favorites, _id } = user
 
-		await this.userModel.findByIdAndUpdate(_id, {
-			favorites: favorites.includes(movieId)
-				? favorites.filter((id) => String(id) !== String(movieId))
-				: [...favorites, movieId],
-		})
+		// await this.userModel.findByIdAndUpdate(_id, {
+		// 	favorites: favorites.includes(movieId)
+		// 		? favorites.filter((id) => String(id) !== String(movieId))
+		// 		: [...favorites, movieId],
+		// })
 	}
 
 	async getCount() {
