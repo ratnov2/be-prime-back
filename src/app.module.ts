@@ -15,6 +15,7 @@ import { UserModule } from './user/user.module'
 import { TypegooseModule } from 'nestjs-typegoose'
 import { RatingModule } from './rating/rating.module'
 import { MovieModule } from './movie/movie.module'
+import { MailModule } from './mail/mail.module';
 
 @Module({
 	imports: [
@@ -32,6 +33,7 @@ import { MovieModule } from './movie/movie.module'
 		FilesModule,
 		TelegramModule,
 		RatingModule,
+		MailModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

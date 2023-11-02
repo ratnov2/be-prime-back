@@ -15,7 +15,7 @@ import {
 import { User } from './decorators/user.decorator'
 import { UserService } from './user.service'
 import { Auth } from 'src/auth/decorators/Auth.decorator'
-import { UpdateDto } from './dto/update.dto'
+import { UpdateDto, UpdateDtoFavoritePhotos } from './dto/update.dto'
 import { IdValidationPipe } from 'src/pipes/id.validation.pipe'
 import { UserModel } from './user.model'
 import { Types } from 'mongoose'
@@ -28,6 +28,18 @@ export class UserController {
 	@Auth()
 	async getProfile(@User('_id') _id: string) {
 		return this.userService.byId(_id)
+	}
+
+	@Get('profile/calendar-photos')
+	@Auth()
+	async getCalendarPhotos(@User('_id') _id: string) {
+		return this.userService.getCalendarPhotos(_id)
+	}
+
+	@Put('profile/favorite-photos')
+	@Auth()
+	async updateFavoritePhotos(@User('_id') _id: string, @Body() data:UpdateDtoFavoritePhotos) {
+		return this.userService.updateFavoritePhotos(_id,data)
 	}
 
 	@UsePipes(new ValidationPipe())

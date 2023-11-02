@@ -1,10 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import {
+	BadGatewayException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common'
 import { ModelType, DocumentType } from '@typegoose/typegoose/lib/types'
 import { genSalt, hash } from 'bcryptjs'
 import { Types } from 'mongoose'
 import { InjectModel } from 'nestjs-typegoose'
-import { UpdateDto } from './dto/update.dto'
-import { UserModel } from './user.model'
+import { UpdateDto, UpdateDtoFavoritePhotos } from './dto/update.dto'
+import { IcalendarPhotos, UserModel } from './user.model'
 
 @Injectable()
 export class UserService {
@@ -17,6 +21,31 @@ export class UserService {
 
 		if (user) return user
 		throw new NotFoundException('User not found')
+	}
+
+	async getCalendarPhotos(id: string): Promise<IcalendarPhotos[]> {
+		console.log('@@@@')
+		const user = await this.userModel.findById(id).exec()
+
+		if (user) return user.calendarPhotos
+
+		throw new NotFoundException('User not found')
+	}
+
+	async updateFavoritePhotos(id: string, data: UpdateDtoFavoritePhotos) {
+		
+		const user = await this.userModel.findById(id).exec()
+		
+		if (!user) throw new NotFoundException('user not found')
+		if (defaultKeys.indexOf(key) === -1)
+			throw new BadGatewayException('Bad Key')
+		if (!data.photo) throw new BadGatewayException('Bad photo')
+		
+		let OBJ = { ...user.favoritePhotos }
+		OBJ[key] = data.photo
+		user.favoritePhotos = OBJ
+		await user.save()
+		return
 	}
 
 	async updateProfile(_id: string, data: UpdateDto) {

@@ -16,6 +16,10 @@ export class Parameter {
 	country: string
 }
 
+// export class FavoritePhotos{
+	
+// }
+
 export class MovieModel extends TimeStamps {
 	@prop()
 	poster: string
@@ -49,4 +53,6 @@ export class MovieModel extends TimeStamps {
 
 	@prop({ default: false })
 	isSendTelegram?: boolean
+
+	
 }

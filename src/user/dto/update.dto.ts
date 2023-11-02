@@ -1,4 +1,5 @@
-import { IsEmail, IsString } from 'class-validator'
+import { IsEmail, IsString, MinLength } from 'class-validator'
+import { ObjDecorator } from '../decorators/user.decorator'
 
 export class UpdateDto {
 	@IsEmail()
@@ -8,4 +9,9 @@ export class UpdateDto {
 	password?: string
 
 	isAdmin?: boolean
+}
+
+export class UpdateDtoFavoritePhotos {
+	@IsString()
+	photo: 'string'
 }

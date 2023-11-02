@@ -1,5 +1,6 @@
 import {
 	Controller,
+	Get,
 	HttpCode,
 	Post,
 	Query,
@@ -7,22 +8,24 @@ import {
 	UseInterceptors,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { Auth } from 'src/auth/decorators/Auth.decorator'
 import { FileResponse } from './dto/file.response'
 import { FilesService } from './files.service'
+import { User } from 'src/user/decorators/user.decorator'
+import { Auth } from 'src/auth/decorators/Auth.decorator'
+import { UserModel } from 'src/user/user.model'
 
 @Controller('files')
 export class FilesController {
 	constructor(private readonly filesService: FilesService) {}
-
+	@Auth()
 	@Post()
 	@HttpCode(200)
-	@Auth('admin')
 	@UseInterceptors(FileInterceptor('image'))
 	async uploadFile(
 		@UploadedFile() file: Express.Multer.File,
-		@Query('folder') folder?: string
-	): Promise<FileResponse[]> {
-		return this.filesService.saveFiles([file], folder)
+		@User() user: UserModel,
+		@Query('folder') folder?: 'main' | 'second' | 'avatar'
+	) {
+		return this.filesService.saveFiles([file], folder, user)
 	}
 }
