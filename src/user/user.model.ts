@@ -28,6 +28,10 @@ export class UserModel extends TimeStamps {
 	@prop({ default: [{ created: 'f', photo: 't' }] })
 	calendarPhotos?: IcalendarPhotos[]
 
-	@prop({ default: [] })
-	favoritePhotos: []
+	@prop({ default: { photoOne: null, photoTwo: null, photoThree: null } })
+	favoritePhotos: {
+		photoOne: string | null
+		photoTwo: string | null
+		photoThree: string | null
+	}
 }

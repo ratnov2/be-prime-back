@@ -36,6 +36,9 @@ export class UserService {
 		
 		const user = await this.userModel.findById(id).exec()
 		
+		let defaultKeys = ['photoOne', 'photoTwo', 'photoThree']
+		let key = data.key
+		console.log(defaultKeys.indexOf(key),defaultKeys.indexOf(key),key)
 		if (!user) throw new NotFoundException('user not found')
 		if (defaultKeys.indexOf(key) === -1)
 			throw new BadGatewayException('Bad Key')
