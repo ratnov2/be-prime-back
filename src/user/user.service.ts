@@ -18,13 +18,11 @@ export class UserService {
 
 	async byId(id: string): Promise<DocumentType<UserModel>> {
 		const user = await this.userModel.findById(id).exec()
-
 		if (user) return user
 		throw new NotFoundException('User not found')
 	}
 
 	async getCalendarPhotos(id: string): Promise<IcalendarPhotos[]> {
-		console.log('@@@@')
 		const user = await this.userModel.findById(id).exec()
 
 		if (user) return user.calendarPhotos
@@ -33,17 +31,15 @@ export class UserService {
 	}
 
 	async updateFavoritePhotos(id: string, data: UpdateDtoFavoritePhotos) {
-		
 		const user = await this.userModel.findById(id).exec()
-		
 		let defaultKeys = ['photoOne', 'photoTwo', 'photoThree']
 		let key = data.key
-		console.log(defaultKeys.indexOf(key),defaultKeys.indexOf(key),key)
+		console.log(defaultKeys.indexOf(key), defaultKeys.indexOf(key), key)
 		if (!user) throw new NotFoundException('user not found')
 		if (defaultKeys.indexOf(key) === -1)
 			throw new BadGatewayException('Bad Key')
 		if (!data.photo) throw new BadGatewayException('Bad photo')
-		
+
 		let OBJ = { ...user.favoritePhotos }
 		OBJ[key] = data.photo
 		user.favoritePhotos = OBJ
@@ -102,7 +98,23 @@ export class UserService {
 	async getCount() {
 		return this.userModel.find().count().exec()
 	}
-
+	async getLatestPhoto() {
+		let latest = []
+		let users = await this.userModel.find()
+		users.map((el) => {
+			let latestPhoto = {
+				calendarPhotos: el.calendarPhotos[el.calendarPhotos.length - 1],
+				name:el.firstName
+				
+				// gg: el.
+			}
+			if (!latestPhoto.calendarPhotos) {
+				latest.push(latestPhoto)
+			}
+		
+		})
+		return latest
+	}
 	async getAll(searchTerm?: string): Promise<DocumentType<UserModel>[]> {
 		let options = {}
 

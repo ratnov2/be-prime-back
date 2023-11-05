@@ -25,7 +25,7 @@ export class UserModel extends TimeStamps {
 	@prop({ default: [], ref: () => MovieModel })
 	favorites?: Ref<MovieModel>[]
 
-	@prop({ default: [{ created: 'f', photo: 't' }] })
+	@prop({ default: [] })
 	calendarPhotos?: IcalendarPhotos[]
 
 	@prop({ default: { photoOne: null, photoTwo: null, photoThree: null } })
@@ -34,4 +34,12 @@ export class UserModel extends TimeStamps {
 		photoTwo: string | null
 		photoThree: string | null
 	}
+	@prop({ default: '' })
+	firstName?: string
+
+	@prop({ default: '' })
+	lastName?: string
+
+	@prop({ default: '' })
+	avatar?: string
 }

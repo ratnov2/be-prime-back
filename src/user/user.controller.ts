@@ -38,8 +38,11 @@ export class UserController {
 
 	@Put('profile/favorite-photos')
 	@Auth()
-	async updateFavoritePhotos(@User('_id') _id: string, @Body() data:UpdateDtoFavoritePhotos) {
-		return this.userService.updateFavoritePhotos(_id,data)
+	async updateFavoritePhotos(
+		@User('_id') _id: string,
+		@Body() data: UpdateDtoFavoritePhotos
+	) {
+		return this.userService.updateFavoritePhotos(_id, data)
 	}
 
 	@UsePipes(new ValidationPipe())
@@ -71,7 +74,11 @@ export class UserController {
 	async getCountUsers() {
 		return this.userService.getCount()
 	}
-
+	@Get('latest-photo')
+	@Auth()
+	async getLatestPhoto() {
+		return this.userService.getLatestPhoto()
+	}
 	@Get()
 	@Auth('admin')
 	async getUsers(@Query('searchTerm') searchTerm?: string) {
