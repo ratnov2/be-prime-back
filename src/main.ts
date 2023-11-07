@@ -6,5 +6,6 @@ async function bootstrap() {
 	app.setGlobalPrefix('api')
 	app.enableCors();
 	await app.listen(4200)
+	
 }
 bootstrap()
