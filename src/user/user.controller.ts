@@ -15,7 +15,11 @@ import {
 import { User } from './decorators/user.decorator'
 import { UserService } from './user.service'
 import { Auth } from 'src/auth/decorators/Auth.decorator'
-import { UpdateDto, UpdateDtoFavoritePhotos } from './dto/update.dto'
+import {
+	UpdateDto,
+	UpdateDtoFavoritePhotos,
+	UpdateInfoDto,
+} from './dto/update.dto'
 import { IdValidationPipe } from 'src/pipes/id.validation.pipe'
 import { UserModel } from './user.model'
 import { Types } from 'mongoose'
@@ -56,7 +60,10 @@ export class UserController {
 	@Put('profile/info')
 	@HttpCode(200)
 	@Auth()
-	async updateProfileInfo(@User('_id') _id: string, @Body() data: UpdateDto) {
+	async updateProfileInfo(
+		@User('_id') _id: string,
+		@Body() data: UpdateInfoDto
+	) {
 		return this.userService.updateProfileInfo(_id, data)
 	}
 

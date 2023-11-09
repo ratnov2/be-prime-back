@@ -7,7 +7,11 @@ import { ModelType, DocumentType } from '@typegoose/typegoose/lib/types'
 import { genSalt, hash } from 'bcryptjs'
 import { Types } from 'mongoose'
 import { InjectModel } from 'nestjs-typegoose'
-import { UpdateDto, UpdateDtoFavoritePhotos } from './dto/update.dto'
+import {
+	UpdateDto,
+	UpdateDtoFavoritePhotos,
+	UpdateInfoDto,
+} from './dto/update.dto'
 import { IcalendarPhotos, UserModel } from './user.model'
 
 @Injectable()
@@ -70,9 +74,13 @@ export class UserService {
 	// 	throw new NotFoundException('User not found')
 	// }
 
-	async updateProfileInfo(_id: string, data: UpdateDto) {
-		const user = await this.userModel.findById(_id)
-		
+	async updateProfileInfo(_id: string, data: UpdateInfoDto) {
+		let user = await this.userModel.findById(_id)
+		user.lastName = data.lastName
+		user.firstName = data.firstName
+		user.avatar = data.avatar
+		await user.save()
+		return user
 	}
 	async getFavoriteMovies(_id: string) {
 		return this.userModel
