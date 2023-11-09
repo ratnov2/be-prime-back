@@ -45,12 +45,19 @@ export class UserController {
 		return this.userService.updateFavoritePhotos(_id, data)
 	}
 
-	@UsePipes(new ValidationPipe())
-	@Put('profile')
+	// @UsePipes(new ValidationPipe())
+	// @Put('profile')
+	// @HttpCode(200)
+	// @Auth()
+	// async updateProfile(@User('_id') _id: string, @Body() data: UpdateDto) {
+	// 	return this.userService.updateProfile(_id, data)
+	// }
+
+	@Put('profile/info')
 	@HttpCode(200)
 	@Auth()
-	async updateProfile(@User('_id') _id: string, @Body() data: UpdateDto) {
-		return this.userService.updateProfile(_id, data)
+	async updateProfileInfo(@User('_id') _id: string, @Body() data: UpdateDto) {
+		return this.userService.updateProfileInfo(_id, data)
 	}
 
 	@Get('profile/favorites')
@@ -91,16 +98,16 @@ export class UserController {
 		return this.userService.byId(id)
 	}
 
-	@UsePipes(new ValidationPipe())
-	@Put(':id')
-	@HttpCode(200)
-	@Auth('admin')
-	async updateUser(
-		@Param('id', IdValidationPipe) id: string,
-		@Body() data: UpdateDto
-	) {
-		return this.userService.updateProfile(id, data)
-	}
+	// @UsePipes(new ValidationPipe())
+	// @Put(':id')
+	// @HttpCode(200)
+	// @Auth('admin')
+	// async updateUser(
+	// 	@Param('id', IdValidationPipe) id: string,
+	// 	@Body() data: UpdateDto
+	// ) {
+	// 	return this.userService.updateProfile(id, data)
+	// }
 
 	@Delete(':id')
 	@Auth('admin')

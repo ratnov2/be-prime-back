@@ -47,29 +47,33 @@ export class UserService {
 		return
 	}
 
-	async updateProfile(_id: string, data: UpdateDto) {
+	// async updateProfile(_id: string, data: UpdateDto) {
+	// 	const user = await this.userModel.findById(_id)
+	// 	const isSameUser = await this.userModel.findOne({ email: data.email })
+
+	// 	if (isSameUser && String(_id) !== String(isSameUser._id)) {
+	// 		throw new NotFoundException('Email busy')
+	// 	}
+
+	// 	if (user) {
+	// 		if (data.password) {
+	// 			const salt = await genSalt(10)
+	// 			user.password = await hash(data.password, salt)
+	// 		}
+	// 		user.email = data.email
+	// 		if (data.isAdmin || data.isAdmin === false) user.isAdmin = data.isAdmin
+
+	// 		await user.save()
+	// 		return
+	// 	}
+
+	// 	throw new NotFoundException('User not found')
+	// }
+
+	async updateProfileInfo(_id: string, data: UpdateDto) {
 		const user = await this.userModel.findById(_id)
-		const isSameUser = await this.userModel.findOne({ email: data.email })
-
-		if (isSameUser && String(_id) !== String(isSameUser._id)) {
-			throw new NotFoundException('Email busy')
-		}
-
-		if (user) {
-			if (data.password) {
-				const salt = await genSalt(10)
-				user.password = await hash(data.password, salt)
-			}
-			user.email = data.email
-			if (data.isAdmin || data.isAdmin === false) user.isAdmin = data.isAdmin
-
-			await user.save()
-			return
-		}
-
-		throw new NotFoundException('User not found')
+		
 	}
-
 	async getFavoriteMovies(_id: string) {
 		return this.userModel
 			.findById(_id, 'favorites')
@@ -104,14 +108,13 @@ export class UserService {
 		users.map((el) => {
 			let latestPhoto = {
 				calendarPhotos: el.calendarPhotos[el.calendarPhotos.length - 1],
-				name:el.firstName
-				
+				name: el.firstName,
+
 				// gg: el.
 			}
 			if (!latestPhoto.calendarPhotos) {
 				latest.push(latestPhoto)
 			}
-		
 		})
 		return latest
 	}

@@ -31,7 +31,7 @@ export class FilesService {
 		const day = date.getDate()
 		const flag = `${year}-${month}-${day}`
 		if (
-			user2.calendarPhotos[user2.calendarPhotos.length - 1].created === flag
+			user2.calendarPhotos[user2.calendarPhotos.length - 1]?.created === flag
 		) {
 			//throw new NotFoundException('alreade have') @TASK
 		}
