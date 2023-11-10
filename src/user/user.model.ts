@@ -42,4 +42,15 @@ export class UserModel extends TimeStamps {
 
 	@prop({ default: '' })
 	avatar?: string
+
+	@prop({ default: [] })
+	friendship?: [
+		{
+			_id: string
+			status: '0' | '1' | '2'
+		}
+	]
 }
+// 0 ожидание
+// 1 запрос 
+// 2 подтверждение

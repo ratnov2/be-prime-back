@@ -100,6 +100,7 @@ export class UserController {
 	}
 
 	@Get(':id')
+	@Auth()
 	async getUser(@Param('id', IdValidationPipe) id: string) {
 		return this.userService.byId(id)
 	}
@@ -120,5 +121,22 @@ export class UserController {
 	async delete(@Param('id', IdValidationPipe) id: string) {
 		const deletedDoc = await this.userService.delete(id)
 		if (!deletedDoc) throw new NotFoundException('Movie not found')
+	}
+
+	//FRiends
+	@Put('friends/add-friend')
+	@Auth()
+	async asyncAddFriend(
+		@User('_id') _id: string,
+		@Body() data: { friendId: string; status: '0' | '1' | '2' }
+	) {
+		return this.userService.addFriend(_id, data)
+	}
+	@Get('friends/all-friend')
+	@Auth()
+	async asyncGetAllFriend(
+		@User('_id') _id: string,
+	) {
+		return this.userService.getAllFriend(_id)
 	}
 }
