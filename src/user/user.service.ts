@@ -75,6 +75,8 @@ export class UserService {
 	// }
 
 	async updateProfileInfo(_id: string, data: UpdateInfoDto) {
+		console.log('@@@');
+		
 		let user = await this.userModel.findById(_id)
 		user.lastName = data.lastName
 		user.firstName = data.firstName
