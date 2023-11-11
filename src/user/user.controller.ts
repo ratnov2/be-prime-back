@@ -124,7 +124,7 @@ export class UserController {
 	}
 
 	//FRiends
-	@Put('friends/add-friend')
+	@Put('friends/add-friends')
 	@Auth()
 	async asyncAddFriend(
 		@User('_id') _id: string,
@@ -132,7 +132,7 @@ export class UserController {
 	) {
 		return this.userService.addFriend(_id, data)
 	}
-	@Get('friends/all-friend')
+	@Get('friends/all-friends')
 	@Auth()
 	async asyncGetAllFriend(
 		@User('_id') _id: string,
