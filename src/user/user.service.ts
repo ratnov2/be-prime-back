@@ -159,38 +159,37 @@ export class UserService {
 		friendId: { friendId: string; status: '0' | '1' | '2' }
 	): Promise<DocumentType<UserModel> | null> {
 		const user = await this.userModel.findById(id).exec()
-		const friendUser = await this.userModel.findById(friendId).exec()
+		const friendUser = await this.userModel.findById(friendId.friendId).exec()
 		if (!user || !friendUser) throw new NotFoundException('User not found')
 		if (friendId.status === '1') {
 			for (let i = 0; i < user.friendship.length; i++) {
-				if (user.friendship[i]._id === friendId.friendId)
+				if (user.friendship[i]._id.equals(friendUser._id))
 					throw new NotFoundException('User not found2')
-				else break
 			}
 			let newReq1 = {
-				_id: friendUser._id as unknown as string,
+				_id: friendUser._id,
 				status: '1' as '1',
 			}
-			let newReq2 = { _id: user._id as unknown as string, status: '1' as '1' }
+			let newReq2 = { _id: user._id, status: '1' as '1' }
 			user.friendship.push(newReq1)
 			friendUser.friendship.push(newReq2)
 		} else if (friendId.status === '2') {
 			for (let i = 0; i < user.friendship.length; i++) {
-				if (user.friendship[i]._id === friendId.friendId)
+				if (user.friendship[i]._id.equals(friendUser._id))
 					throw new NotFoundException('User not found2')
 				else break
 			}
 			let newReq1 = {
-				_id: friendUser._id as unknown as string,
+				_id: friendUser._id,
 				status: '2' as '2',
 			}
-			let newReq2 = { _id: user._id as unknown as string, status: '2' as '2' }
+			let newReq2 = { _id: user._id, status: '2' as '2' }
 			user.friendship.push(newReq1)
 			friendUser.friendship.push(newReq2)
 		} else if (friendId.status === '0') {
 			//delete
 			for (let i = 0; i < user.friendship.length; i++) {
-				if (user.friendship[i]._id === friendId.friendId)
+				if (user.friendship[i]._id.equals(friendUser._id))
 					throw new NotFoundException('User not found2')
 				else break
 			}
@@ -199,25 +198,26 @@ export class UserService {
 				friendUser.friendship.length
 			)
 			for (let i = 0; i < lengthMax; i++) {
-				if (user.friendship[i]?._id === friendId.friendId) {
+				if (user.friendship[i]._id.equals(friendUser._id)) {
 					user.friendship.splice(i, i + 1)
 				}
-				if (friendUser.friendship[i]?._id === (user._id as unknown as string)) {
+				if (user.friendship[i]._id.equals(friendUser._id)) {
 					friendUser.friendship.splice(i, i + 1)
 				}
 			}
 		}
 		await user.save()
 		await friendUser.save()
-		
 		return user
 	}
-	async getAllFriend(id: string): Promise<Promise<any>[]> {
+	async getAllFriend(id: string) {
 		const user = await this.userModel.findById(id).exec()
 		if (!user) throw new NotFoundException('User not found')
-		let result = user.friendship.map(async (friend) => {
-			return await this.userModel.findById(friend._id)
-		})
+		let result = await Promise.all(
+			user.friendship.map(async (friend) => {
+				return await this.userModel.findById(friend._id)
+			})
+		)
 
 		return result
 	}

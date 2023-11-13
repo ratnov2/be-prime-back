@@ -1,5 +1,6 @@
 import { prop, Ref } from '@typegoose/typegoose'
 import { TimeStamps, Base } from '@typegoose/typegoose/lib/defaultClasses'
+import { ObjectId, Schema, Types } from 'mongoose'
 import { MovieModel } from 'src/movie/movie.model'
 
 export interface UserModel extends Base {}
@@ -46,11 +47,11 @@ export class UserModel extends TimeStamps {
 	@prop({ default: [] })
 	friendship?: [
 		{
-			_id: string
+			_id: Types.ObjectId
 			status: '0' | '1' | '2'
 		}
 	]
 }
 // 0 ожидание
-// 1 запрос 
+// 1 запрос
 // 2 подтверждение
