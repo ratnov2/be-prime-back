@@ -156,12 +156,14 @@ export class UserService {
 
 	async addFriend(
 		id: string,
-		friendId: { friendId: string; status: '0' | '1' | '2' }
+		friendId: { friendId: string; status: '0' | '1' | '2' | '3' }
 	): Promise<DocumentType<UserModel> | null> {
 		const user = await this.userModel.findById(id).exec()
 		const friendUser = await this.userModel.findById(friendId.friendId).exec()
+
 		if (!user || !friendUser) throw new NotFoundException('User not found')
 		if (friendId.status === '1') {
+			//request in friend
 			for (let i = 0; i < user.friendship.length; i++) {
 				if (user.friendship[i]._id.equals(friendUser._id))
 					throw new NotFoundException('User not found2')
@@ -170,22 +172,23 @@ export class UserService {
 				_id: friendUser._id,
 				status: '1' as '1',
 			}
-			let newReq2 = { _id: user._id, status: '1' as '1' }
-			user.friendship.push(newReq1)
-			friendUser.friendship.push(newReq2)
-		} else if (friendId.status === '2') {
-			for (let i = 0; i < user.friendship.length; i++) {
-				if (user.friendship[i]._id.equals(friendUser._id))
-					throw new NotFoundException('User not found2')
-				else break
-			}
-			let newReq1 = {
-				_id: friendUser._id,
-				status: '2' as '2',
-			}
 			let newReq2 = { _id: user._id, status: '2' as '2' }
 			user.friendship.push(newReq1)
 			friendUser.friendship.push(newReq2)
+		} else if (friendId.status === '3') {
+			//add friends
+			for (let i = 0; i < user.friendship.length; i++) {
+				if (user.friendship[i]._id.equals(friendUser._id)) {
+					let newObj = { ...user.friendship[i], status: '3' as '3' }
+					user.friendship[i] = newObj
+				}
+			}
+			for (let i = 0; i < friendUser.friendship.length; i++) {
+				if (friendUser.friendship[i]._id.equals(user._id)) {
+					let newObj = { ...friendUser.friendship[i], status: '3' as '3' }
+					friendUser.friendship[i] = newObj
+				}
+			}
 		} else if (friendId.status === '0') {
 			//delete
 			for (let i = 0; i < user.friendship.length; i++) {
@@ -213,11 +216,21 @@ export class UserService {
 	async getAllFriend(id: string) {
 		const user = await this.userModel.findById(id).exec()
 		if (!user) throw new NotFoundException('User not found')
-		let result = await Promise.all(
-			user.friendship.map(async (friend) => {
-				return await this.userModel.findById(friend._id)
-			})
-		)
+		let result = {
+			friendship: await Promise.all(
+				user.friendship.map(async (friend) => {
+					let req = await this.userModel.findById(friend._id)
+					let result = {
+						friends: req,
+						status: friend.status,
+					}
+					return result
+				})
+			),
+
+			_id: user._id,
+		}
+		console.log(result)
 
 		return result
 	}

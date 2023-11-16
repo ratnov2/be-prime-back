@@ -128,7 +128,7 @@ export class UserController {
 	@Auth()
 	async asyncAddFriend(
 		@User('_id') _id: string,
-		@Body() data: { friendId: string; status: '0' | '1' | '2' }
+		@Body() data: { friendId: string; status: '0' | '1' | '2'|'3' }
 	) {
 		return this.userService.addFriend(_id, data)
 	}

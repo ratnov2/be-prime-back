@@ -48,7 +48,7 @@ export class UserModel extends TimeStamps {
 	friendship?: [
 		{
 			_id: Types.ObjectId
-			status: '0' | '1' | '2'
+			status: '0' | '1' | '2' | '3'
 		}
 	]
 }
