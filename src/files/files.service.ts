@@ -33,7 +33,7 @@ export class FilesService {
 		if (
 			user2.calendarPhotos[user2.calendarPhotos.length - 1]?.created === flag
 		) {
-			//throw new NotFoundException('alreade have') @TASK
+			throw new NotFoundException('alreade have') 
 		}
 		//console.log(uploadFolder);
 
@@ -56,6 +56,8 @@ export class FilesService {
 					{
 						created: flag,
 						photo: `${uploadFileFolder}${extname(file.originalname)}`,
+						comment: '',
+						comments: [],
 					},
 				]
 				return {

@@ -128,15 +128,30 @@ export class UserController {
 	@Auth()
 	async asyncAddFriend(
 		@User('_id') _id: string,
-		@Body() data: { friendId: string; status: '0' | '1' | '2'|'3' }
+		@Body() data: { friendId: string; status: '0' | '1' | '2' | '3' }
 	) {
 		return this.userService.addFriend(_id, data)
 	}
 	@Get('friends/all-friends')
 	@Auth()
-	async asyncGetAllFriend(
-		@User('_id') _id: string,
-	) {
+	async asyncGetAllFriend(@User('_id') _id: string) {
 		return this.userService.getAllFriend(_id)
+	}
+	@Post('profile/main-message')
+	@Auth()
+	async addMainMessage(
+		@User('_id') _id: string,
+		@Body() data: { message: string; link: 'string' }
+	) {
+		return this.userService.addMainMessage(_id, data.message, data.link)
+	}
+
+	@Post('profile/user-message')
+	@Auth()
+	async addUserMessage(
+		@User('_id') _id: string,
+		@Body() data: { message: string; link: 'string'; userId: string }
+	) {
+		return this.userService.addComment(_id, data)
 	}
 }

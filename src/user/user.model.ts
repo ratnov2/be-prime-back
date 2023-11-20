@@ -11,6 +11,15 @@ export class IcalendarPhotos {
 
 	@prop()
 	photo: string
+
+	@prop({ default: '' })
+	comment: string
+
+	@prop({ default: [] })
+	comments: {
+		_id: Types.ObjectId
+		message: string
+	}[]
 }
 
 export class UserModel extends TimeStamps {

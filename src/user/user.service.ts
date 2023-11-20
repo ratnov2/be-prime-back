@@ -119,10 +119,11 @@ export class UserService {
 			let latestPhoto = {
 				calendarPhotos: el.calendarPhotos[el.calendarPhotos.length - 1],
 				name: el.firstName,
+				_id: el._id,
 
 				// gg: el.
 			}
-			if (!latestPhoto.calendarPhotos) {
+			if (latestPhoto.calendarPhotos) {
 				latest.push(latestPhoto)
 			}
 		})
@@ -160,7 +161,8 @@ export class UserService {
 	): Promise<DocumentType<UserModel> | null> {
 		const user = await this.userModel.findById(id).exec()
 		const friendUser = await this.userModel.findById(friendId.friendId).exec()
-
+		if (user._id.equals(friendUser._id))
+			throw new NotFoundException('User not found')
 		if (!user || !friendUser) throw new NotFoundException('User not found')
 		if (friendId.status === '1') {
 			//request in friend
@@ -191,23 +193,23 @@ export class UserService {
 			}
 		} else if (friendId.status === '0') {
 			//delete
-			for (let i = 0; i < user.friendship.length; i++) {
-				if (user.friendship[i]._id.equals(friendUser._id))
-					throw new NotFoundException('User not found2')
-				else break
-			}
 			const lengthMax = Math.max(
 				user.friendship.length,
 				friendUser.friendship.length
 			)
+			let userIndexDelete = undefined
+			let FriendIndexDelete = undefined
 			for (let i = 0; i < lengthMax; i++) {
-				if (user.friendship[i]._id.equals(friendUser._id)) {
-					user.friendship.splice(i, i + 1)
+				if (user.friendship?.[i]._id.equals(friendUser._id)) {
+					userIndexDelete = i
 				}
-				if (user.friendship[i]._id.equals(friendUser._id)) {
-					friendUser.friendship.splice(i, i + 1)
+
+				if (user.friendship?.[i]._id.equals(friendUser._id)) {
+					FriendIndexDelete = i
 				}
 			}
+			user.friendship.splice(userIndexDelete)
+			friendUser.friendship.splice(FriendIndexDelete)
 		}
 		await user.save()
 		await friendUser.save()
@@ -230,10 +232,38 @@ export class UserService {
 
 			_id: user._id,
 		}
-		console.log(result)
 
 		return result
 	}
+	async addMainMessage(id: string, message: string, link: string) {
+		let user = await this.userModel.findById(id).exec()
+		if (!user) throw new NotFoundException('User not found')
+		await this.userModel.updateOne(
+			{ _id: id, 'calendarPhotos.photo': link },
+			{ $set: { 'calendarPhotos.$.comment': message } }
+		)
+		return true
+	}
+	async addComment(
+		id: string, //sentedUser
+		data: { message: string; link: string; userId: string }
+	) {
+		const sentedUser = await this.userModel.findById(id).exec()
+		const user = await this.userModel.findById(data.userId).exec()
+		//const friendUser = await this.userModel.findById(data.userId).exec()
+		if (!user || !sentedUser) throw new NotFoundException('User not found')
+		let latestPhotoIndex = user.calendarPhotos.length - 1
+		if (user.calendarPhotos[latestPhotoIndex].photo === data.link) {
+			const newMessage = {
+				_id: sentedUser._id,
+				message: data.message,
+			}
+			user.calendarPhotos[latestPhotoIndex].comments.push(newMessage)
+		}
+		await user.save()
+		return true
+	}
+	//comments
 }
 
 //1user touch getAddFriend -> status(1) ->user[friend[user2,status:1]] user[friend[user1,status:1]]
