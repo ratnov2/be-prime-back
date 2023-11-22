@@ -150,8 +150,16 @@ export class UserController {
 	@Auth()
 	async addUserMessage(
 		@User('_id') _id: string,
-		@Body() data: { message: string; link: 'string'; userId: string }
+		@Body() data: { message: string; created: string; userId: string }
 	) {
 		return this.userService.addComment(_id, data)
+	}
+	@Post('profile/user-posts')
+	@Auth()
+	async getPostUserByLink(
+		@User('_id') _id: string,
+		@Body() data: { created: string; userId: string }
+	) {
+		return this.userService.getPostUserByLink(_id, data)
 	}
 }

@@ -246,24 +246,144 @@ export class UserService {
 	}
 	async addComment(
 		id: string, //sentedUser
-		data: { message: string; link: string; userId: string }
+		data: { message: string; created: string; userId: string }
 	) {
 		const sentedUser = await this.userModel.findById(id).exec()
 		const user = await this.userModel.findById(data.userId).exec()
 		//const friendUser = await this.userModel.findById(data.userId).exec()
 		if (!user || !sentedUser) throw new NotFoundException('User not found')
-		let latestPhotoIndex = user.calendarPhotos.length - 1
-		if (user.calendarPhotos[latestPhotoIndex].photo === data.link) {
-			const newMessage = {
-				_id: sentedUser._id,
-				message: data.message,
+		// let latestPhotoIndex = user.calendarPhotos.length - 1
+		// if (user.calendarPhotos[latestPhotoIndex].photo === data.link) {
+		// 	const newMessage = {
+		// 		_id: sentedUser._id,
+		// 		message: data.message,
+		// 	}
+		// 	user.calendarPhotos[latestPhotoIndex].comments.push(newMessage)
+		// }
+		// const newComment = {
+		// 	_id: id,
+		// 	message: data.message,
+		// }
+
+		let ff = await this.userModel.updateOne(
+			{ _id: data.userId, 'calendarPhotos.created': data.created },
+			{
+				$push: {
+					'calendarPhotos.$.comments': {
+						_id: id,
+						message: data.message,
+						created: new Date(),
+					},
+				},
 			}
-			user.calendarPhotos[latestPhotoIndex].comments.push(newMessage)
-		}
+		)
+
+		// db.collection('books')
+		// 	.updateOne(
+		// 		{ _id: refid }, // query matching , refId should be "ObjectId" type
+		// 		{ $push: { attachments: arr[0] } } //single object will be pushed to attachemnts
+		// 	)
+		// 	.done(function (err, updElem) {
+		// 		console.log('updElem' + JSON.stringify(updElem))
+		// 	})
+		const user2 = await this.userModel.findById(data.userId).exec()
+
 		await user.save()
 		return true
 	}
+	async getPostUserByLink(
+		id: string, //sentedUser
+		data: { created: string; userId: string }
+	) {
+		const userPost = await this.userModel.findById(data.userId).exec()
+
+		let ff = await this.userModel.findOne(
+			{ _id: data.userId },
+			{
+				calendarPhotos: {
+					$elemMatch: { created: data.created },
+				},
+			}
+		)
+		//console.log(ff.calendarPhotos[0].comments)
+		const users = ff.calendarPhotos[0].comments.map((el) => el._id)
+		// const FF2 = await this.userModel
+		// 	.find({
+		// 		_id: {
+		// 			$in: [...users],
+		// 		},
+		// 	})
+		// 	.select(['_id','avatar'])
+		const FF3 = await this.userModel.aggregate([
+			{
+				$match: {
+					email: 'an2@ya.ru',
+				},
+			},
+			{
+				$unwind: '$calendarPhotos',
+			},
+			{
+				$group: {
+					_id: '$calendarPhotos.comments',
+				},
+			},
+
+			{
+				$lookup: {
+					from: 'User',
+					localField: '_id._id',
+					pipeline: [
+						{
+							$project: {
+								email: 1,
+								avatar: 1,
+							},
+						},
+					],
+					foreignField: '_id',
+					as: 'foret',
+				},
+			},
+			{
+				$project: {
+					foret: 1,
+				},
+			},
+		])
+		const hashIds = {}
+		FF3[0].foret.map((foret: { _id: string | number }) => {
+			hashIds[foret._id] = foret
+		})
+		const result = []
+		FF3[0]._id.map((_id: any) => {
+			const newComment = {
+				...hashIds[_id._id],
+				message: _id.message,
+				created: _id.created
+			}
+			result.push(newComment)
+		})
+		return result
+	}
+	async getCommentByLink(
+		id: string, //sentedUser
+		data: { link: string; userId: string }
+	) {
+		const userPost = await this.userModel.findById(data.userId).exec()
+		let latestsPhoto =
+			userPost.calendarPhotos[userPost.calendarPhotos.length - 1]
+		for (let i = 0; i < latestsPhoto.comments.length; i++) {
+			latestsPhoto.comments[i].message
+		}
+	}
 	//comments
+	// async addCommentuser(
+	// 	id: string,
+	// 	data: { message: string; link: string; userId: string }
+	// ) {
+
+	// }
 }
 
 //1user touch getAddFriend -> status(1) ->user[friend[user2,status:1]] user[friend[user1,status:1]]

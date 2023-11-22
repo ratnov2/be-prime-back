@@ -2,10 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { path } from 'app-root-path'
 import { ensureDir, writeFile } from 'fs-extra'
 import { FileResponse } from './dto/file.response'
-import { extname } from 'path'
+import { extname, join } from 'path'
 import { IcalendarPhotos, UserModel } from 'src/user/user.model'
 import { InjectModel } from 'nestjs-typegoose'
 import { ModelType } from '@typegoose/typegoose/lib/types'
+import * as sharp from 'sharp'
 
 @Injectable()
 export class FilesService {
@@ -33,7 +34,7 @@ export class FilesService {
 		if (
 			user2.calendarPhotos[user2.calendarPhotos.length - 1]?.created === flag
 		) {
-			throw new NotFoundException('alreade have') 
+			//throw new NotFoundException('alreade have')
 		}
 		//console.log(uploadFolder);
 
@@ -47,15 +48,23 @@ export class FilesService {
 		const uploadFileFolder = `/uploads/${folder}/${user._id}/${randomName}`
 		const res: FileResponse[] = await Promise.all(
 			files.map(async (file) => {
-				await writeFile(
-					`${writeFileFolder}${extname(file.originalname)}`,
-					file.buffer
-				)
+				console.log('!!!!')
+
+				await sharp(file.buffer)
+					.resize({
+						width: 600,
+						height: 1020,
+						// background:'transparent',
+						fit: 'outside',
+					})
+					.toFormat('webp')
+					.webp({ quality: 10 })
+					.toFile(join(`${writeFileFolder}.webp`))
 				user2.calendarPhotos = [
 					...user2.calendarPhotos,
 					{
 						created: flag,
-						photo: `${uploadFileFolder}${extname(file.originalname)}`,
+						photo: `${uploadFileFolder}.webp`,
 						comment: '',
 						comments: [],
 					},
