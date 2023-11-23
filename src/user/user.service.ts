@@ -28,7 +28,6 @@ export class UserService {
 
 	async getCalendarPhotos(id: string): Promise<IcalendarPhotos[]> {
 		const user = await this.userModel.findById(id).exec()
-
 		if (user) return user.calendarPhotos
 
 		throw new NotFoundException('User not found')

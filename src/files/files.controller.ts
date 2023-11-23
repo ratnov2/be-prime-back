@@ -24,8 +24,9 @@ export class FilesController {
 	async uploadFile(
 		@UploadedFile() file: Express.Multer.File,
 		@User() user: UserModel,
-		@Query('folder') folder?: 'main' | 'second' | 'avatar'
+		@Query('folder') folder?: 'main' | 'second' | 'avatar',
+		@Query('type') type?: 'frontPhoto' | 'backPhoto'
 	) {
-		return this.filesService.saveFiles([file], folder, user)
+		return this.filesService.saveFiles([file], folder,type, user)
 	}
 }

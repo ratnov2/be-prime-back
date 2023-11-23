@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import {
+	BadRequestException,
+	Injectable,
+	NotFoundException,
+} from '@nestjs/common'
 import { path } from 'app-root-path'
 import { ensureDir, writeFile } from 'fs-extra'
 import { FileResponse } from './dto/file.response'
@@ -16,8 +20,11 @@ export class FilesService {
 	async saveFiles(
 		files: Express.Multer.File[],
 		folder: 'main' | 'second' | 'avatar',
+		type: 'frontPhoto' | 'backPhoto',
 		user: UserModel
-	): Promise<FileResponse[]> {
+	): Promise<any> {
+		if (type !== 'frontPhoto' && type !== 'backPhoto')
+			throw new BadRequestException('You not use type')
 		//const user2 = await this.UserModel.findById(id).exec()
 		//console.log(user)
 		// console.log(files)
@@ -48,8 +55,6 @@ export class FilesService {
 		const uploadFileFolder = `/uploads/${folder}/${user._id}/${randomName}`
 		const res: FileResponse[] = await Promise.all(
 			files.map(async (file) => {
-				console.log('!!!!')
-
 				await sharp(file.buffer)
 					.resize({
 						width: 600,
@@ -60,25 +65,78 @@ export class FilesService {
 					.toFormat('webp')
 					.webp({ quality: 10 })
 					.toFile(join(`${writeFileFolder}.webp`))
-				user2.calendarPhotos = [
-					...user2.calendarPhotos,
-					{
-						created: flag,
+
+				const created = new Date()
+				const createdUserLast =
+					user.calendarPhotos[user.calendarPhotos.length - 1]
+				const lastCreatedPhoto = createdUserLast.created
+				if (lastCreatedPhoto) {
+					//---------//
+					//////have only 1 created photo?
+					//////i  have 1 photo -> means split lastCreatedphoto
+					//--------//
+					const [year, month, day] = lastCreatedPhoto.split('-')
+					const newPhoto = {
+						created,
 						photo: `${uploadFileFolder}.webp`,
-						comment: '',
-						comments: [],
-					},
-				]
+						locate: '',
+					}
+					if (
+						created.getDate() === +day &&
+						created.getFullYear() === +year &&
+						created.getMonth() === +month
+					) {
+						// if i  have already CreatedPhoto in latest day and i add photo to there
+						if (!!createdUserLast.photos[type]?.photo)
+							throw new BadRequestException(`You already have ${type} photos`)
+
+						const ff = {
+							...createdUserLast.photos,
+							[type]: newPhoto,
+						}
+						const popped = user2.calendarPhotos.pop()
+						popped.photos = ff
+
+						console.log('!!!')
+						user2.calendarPhotos = [...user2.calendarPhotos,popped]
+						await user2.save()
+
+					} else {
+						// if i  haven't CreatedPhoto in latest day and i add photo to there
+						const newCalendarPhoto = {
+							created: `${created.getFullYear()}-${created.getMonth()}-${created.getDate()}`,
+							comment: '',
+							comments: [],
+							photos: { [type]: newPhoto },
+						}
+						//newCalendarPhoto[type] = newPhoto
+						user2.calendarPhotos = [...user2.calendarPhotos, newCalendarPhoto]
+					}
+				}
+				// if (created.getDate === createdUserLast.created)
+				// 	// const newPhotos = {
+				// 	// 	created: flag,
+				// 	// 	photos: {},
+				// 	// 	comment: '',
+				// 	// 	comments: [],
+				// 	// }
+				// 	newPhotos.photos[type] = {
+				// 		created,
+				// 		photo: `${uploadFileFolder}.webp`,
+				// 		locate: '',
+				// 	}
+				// user2.calendarPhotos = [...user2.calendarPhotos, newPhotos]
+				//user2.calendarPhotos
 				return {
 					url: `/uploads/${folder}/${randomName}`,
 					name: file.originalname,
 				}
 			})
 		)
-		user2.calendarPhotos = [...user2.calendarPhotos]
+		//user2.calendarPhotos = [...user2.calendarPhotos]
 
 		user2.save()
 
-		return res
+		return user2.calendarPhotos
 	}
 }

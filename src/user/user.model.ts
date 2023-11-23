@@ -10,7 +10,18 @@ export class IcalendarPhotos {
 	created: string
 
 	@prop()
-	photo: string
+	photos: {
+		frontPhoto?: {
+			created: Date
+			photo: string
+			locate: string
+		}
+		backPhoto?: {
+			created: Date
+			photo: string
+			locate: string
+		}
+	}
 
 	@prop({ default: '' })
 	comment: string
