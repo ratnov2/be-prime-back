@@ -7,7 +7,7 @@ export interface UserModel extends Base {}
 
 export class IcalendarPhotos {
 	@prop({ unique: true })
-	created: string
+	created: Date
 
 	@prop()
 	photos: {

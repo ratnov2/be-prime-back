@@ -33,16 +33,14 @@ export class FilesService {
 		const uploadFolder = `${path}/uploads/${folder}/${user._id}`
 		const user2 = await this.UserModel.findById(user._id).exec()
 		await ensureDir(uploadFolder)
-		const date = new Date()
-		const year = date.getFullYear()
-		const month = date.getMonth()
-		const day = date.getDate()
-		const flag = `${year}-${month}-${day}`
-		if (
-			user2.calendarPhotos[user2.calendarPhotos.length - 1]?.created === flag
-		) {
-			//throw new NotFoundException('alreade have')
-		}
+		//const date = new Date()
+
+		//const flag = `${year}-${month}-${day}`
+		// if (
+		// 	user2.calendarPhotos[user2.calendarPhotos.length - 1]?.created === flag
+		// ) {
+		//throw new NotFoundException('alreade have')
+		//}
 		//console.log(uploadFolder);
 
 		//user2.save()
@@ -69,18 +67,22 @@ export class FilesService {
 				const created = new Date()
 				const createdUserLast =
 					user.calendarPhotos[user.calendarPhotos.length - 1]
-				const lastCreatedPhoto = createdUserLast.created
+				const lastCreatedPhoto = createdUserLast?.created
+				const newPhoto = {
+					created,
+					photo: `${uploadFileFolder}.webp`,
+					locate: '',
+				}
 				if (lastCreatedPhoto) {
 					//---------//
 					//////have only 1 created photo?
 					//////i  have 1 photo -> means split lastCreatedphoto
 					//--------//
-					const [year, month, day] = lastCreatedPhoto.split('-')
-					const newPhoto = {
-						created,
-						photo: `${uploadFileFolder}.webp`,
-						locate: '',
-					}
+					const dateLastCreatedPhoto = new Date(lastCreatedPhoto)
+					const day = dateLastCreatedPhoto.getDate()
+					const year = dateLastCreatedPhoto.getFullYear()
+					const month = dateLastCreatedPhoto.getMonth()
+					
 					if (
 						created.getDate() === +day &&
 						created.getFullYear() === +year &&
@@ -97,21 +99,32 @@ export class FilesService {
 						const popped = user2.calendarPhotos.pop()
 						popped.photos = ff
 
-						console.log('!!!')
-						user2.calendarPhotos = [...user2.calendarPhotos,popped]
+						user2.calendarPhotos = [...user2.calendarPhotos, popped]
 						await user2.save()
+					} 
+					// else {
+					// 	// if i  haven't CreatedPhoto in latest day and i add photo to there
+					// 	const newCalendarPhoto = {
+					// 		created,
+					// 		comment: '',
+					// 		comments: [],
+					// 		photos: { [type]: newPhoto },
+					// 	}
 
-					} else {
-						// if i  haven't CreatedPhoto in latest day and i add photo to there
-						const newCalendarPhoto = {
-							created: `${created.getFullYear()}-${created.getMonth()}-${created.getDate()}`,
-							comment: '',
-							comments: [],
-							photos: { [type]: newPhoto },
-						}
-						//newCalendarPhoto[type] = newPhoto
-						user2.calendarPhotos = [...user2.calendarPhotos, newCalendarPhoto]
+					// 	//newCalendarPhoto[type] = newPhoto
+					// 	user2.calendarPhotos = [...user2.calendarPhotos, newCalendarPhoto]
+					// }
+				} else {
+					// if i  haven't CreatedPhoto in latest day and i add photo to there
+					const newCalendarPhoto = {
+						created,
+						comment: '',
+						comments: [],
+						photos: { [type]: newPhoto },
 					}
+
+					//newCalendarPhoto[type] = newPhoto
+					user2.calendarPhotos = [...user2.calendarPhotos, newCalendarPhoto]
 				}
 				// if (created.getDate === createdUserLast.created)
 				// 	// const newPhotos = {
