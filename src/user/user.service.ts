@@ -234,18 +234,20 @@ export class UserService {
 
 		return result
 	}
-	async addMainMessage(id: string, message: string, link: string) {
+	async addMainMessage(id: string, message: string, created: Date) {
 		let user = await this.userModel.findById(id).exec()
 		if (!user) throw new NotFoundException('User not found')
+
 		await this.userModel.updateOne(
-			{ _id: id, 'calendarPhotos.photo': link },
-			{ $set: { 'calendarPhotos.$.comment': message } }
+			{ _id: id, 'calendarPhotos.created': new Date(created) },
+			{ $set: { 'calendarPhotos.$.comment': message } } ///@@CHECK
 		)
+
 		return true
 	}
 	async addComment(
 		id: string, //sentedUser
-		data: { message: string; created: string; userId: string }
+		data: { message: string; created: Date; userId: string }
 	) {
 		const sentedUser = await this.userModel.findById(id).exec()
 		const user = await this.userModel.findById(data.userId).exec()
@@ -263,9 +265,10 @@ export class UserService {
 		// 	_id: id,
 		// 	message: data.message,
 		// }
+		console.log(new Date(data.created))
 
 		let ff = await this.userModel.updateOne(
-			{ _id: data.userId, 'calendarPhotos.created': data.created },
+			{ _id: data.userId, 'calendarPhotos.created': new Date(data.created) },
 			{
 				$push: {
 					'calendarPhotos.$.comments': {
@@ -277,14 +280,6 @@ export class UserService {
 			}
 		)
 
-		// db.collection('books')
-		// 	.updateOne(
-		// 		{ _id: refid }, // query matching , refId should be "ObjectId" type
-		// 		{ $push: { attachments: arr[0] } } //single object will be pushed to attachemnts
-		// 	)
-		// 	.done(function (err, updElem) {
-		// 		console.log('updElem' + JSON.stringify(updElem))
-		// 	})
 		const user2 = await this.userModel.findById(data.userId).exec()
 
 		await user.save()
@@ -305,7 +300,7 @@ export class UserService {
 			}
 		)
 		//console.log(ff.calendarPhotos[0].comments)
-		const users = ff.calendarPhotos[0].comments.map((el) => el._id)
+		//const users = ff.calendarPhotos[0].comments.map((el) => el._id)
 		// const FF2 = await this.userModel
 		// 	.find({
 		// 		_id: {
@@ -316,7 +311,8 @@ export class UserService {
 		const FF3 = await this.userModel.aggregate([
 			{
 				$match: {
-					email: 'an2@ya.ru',
+					email: userPost.email,
+					//_id:data.userId
 				},
 			},
 			{
@@ -350,16 +346,17 @@ export class UserService {
 				},
 			},
 		])
+
 		const hashIds = {}
-		FF3[0].foret.map((foret: { _id: string | number }) => {
+		FF3[0]?.foret.map((foret: { _id: string | number }) => {
 			hashIds[foret._id] = foret
 		})
 		const result = []
-		FF3[0]._id.map((_id: any) => {
+		FF3[0]?._id.map((_id: any) => {
 			const newComment = {
 				...hashIds[_id._id],
 				message: _id.message,
-				created: _id.created
+				created: _id.created,
 			}
 			result.push(newComment)
 		})
