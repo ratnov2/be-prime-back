@@ -96,6 +96,7 @@ export class AuthService {
 			lastName: user.lastName,
 			avatar: user.avatar,
 			friendship: user.friendship,
+			latestPhoto: user.calendarPhotos[user.calendarPhotos.length - 1],
 		}
 	}
 }

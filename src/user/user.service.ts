@@ -5,13 +5,14 @@ import {
 } from '@nestjs/common'
 import { ModelType, DocumentType } from '@typegoose/typegoose/lib/types'
 import { genSalt, hash } from 'bcryptjs'
-import { Types } from 'mongoose'
+import mongoose, { Types } from 'mongoose'
 import { InjectModel } from 'nestjs-typegoose'
 import {
 	UpdateDto,
 	UpdateDtoFavoritePhotos,
 	UpdateInfoDto,
 } from './dto/update.dto'
+
 import { IcalendarPhotos, UserModel } from './user.model'
 
 @Injectable()
@@ -111,6 +112,55 @@ export class UserService {
 	async getCount() {
 		return this.userModel.find().count().exec()
 	}
+
+	async findUsersByName(name: string, id: string) {
+		const users = await this.userModel.find(
+			{
+				$expr: {
+					$regexMatch: {
+						input: { $concat: ['$firstName', ' ', '$lastName'] },
+						regex: name, //Your text search here
+						options: 'i',
+					},
+				},
+			},
+
+			{
+				avatar: 1,
+				_id: 1,
+				firstName: 1,
+				friendship: {
+					$cond: {
+						if: { $in: [new mongoose.mongo.ObjectId(id), '$friendship._id'] },
+						then: {
+							$map: {
+								input: '$friendship',
+								as: 'friend',
+								in: {
+									$cond: [
+										{
+											$eq: ['$$friend.id', new mongoose.mongo.ObjectId(id)],
+										},
+										{ id: '$$friend.id', status: '$$friend.status' },
+										'$$friend',
+									],
+								},
+							},
+						},
+						else: null,
+					},
+				},
+				// 	id.length >= 12
+				// 		? {
+				// 				$elemMatch: {
+				// 					_id: new mongoose.mongo.ObjectId(id),
+				// 				},
+				// 		  }
+				// 		: 1,
+			}
+		)
+		return users
+	}
 	async getLatestPhoto() {
 		let latest = []
 		let users = await this.userModel.find()
@@ -130,7 +180,6 @@ export class UserService {
 	}
 	async getAll(searchTerm?: string): Promise<DocumentType<UserModel>[]> {
 		let options = {}
-
 		if (searchTerm) {
 			options = {
 				$or: [
@@ -163,11 +212,15 @@ export class UserService {
 		if (user._id.equals(friendUser._id))
 			throw new NotFoundException('User not found')
 		if (!user || !friendUser) throw new NotFoundException('User not found')
+		if (friendId.status === ('11' as '1')) {
+			user.friendship = [] as any
+			friendUser.friendship = [] as any
+		}
 		if (friendId.status === '1') {
 			//request in friend
 			for (let i = 0; i < user.friendship.length; i++) {
 				if (user.friendship[i]._id.equals(friendUser._id))
-					throw new NotFoundException('User not found2')
+					throw new NotFoundException('request is already sented')
 			}
 			let newReq1 = {
 				_id: friendUser._id,
@@ -212,7 +265,7 @@ export class UserService {
 		}
 		await user.save()
 		await friendUser.save()
-		return user
+		return friendUser
 	}
 	async getAllFriend(id: string) {
 		const user = await this.userModel.findById(id).exec()
@@ -265,7 +318,6 @@ export class UserService {
 		// 	_id: id,
 		// 	message: data.message,
 		// }
-		console.log(new Date(data.created))
 
 		let ff = await this.userModel.updateOne(
 			{ _id: data.userId, 'calendarPhotos.created': new Date(data.created) },
@@ -333,6 +385,7 @@ export class UserService {
 							$project: {
 								email: 1,
 								avatar: 1,
+								firstName: 1,
 							},
 						},
 					],
@@ -360,6 +413,8 @@ export class UserService {
 			}
 			result.push(newComment)
 		})
+		console.log(result)
+
 		return result
 	}
 	async getCommentByLink(

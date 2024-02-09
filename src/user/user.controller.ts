@@ -123,6 +123,15 @@ export class UserController {
 		if (!deletedDoc) throw new NotFoundException('Movie not found')
 	}
 
+	@Post('user-by-name')
+	@Auth()
+	async findUsersByName(
+		@User('_id') _id: string,
+		@Body() data: { name: string; id: string }
+	) {
+		return this.userService.findUsersByName(data.name,data.id)
+	}
+
 	//FRiends
 	@Put('friends/add-friends')
 	@Auth()
@@ -141,7 +150,7 @@ export class UserController {
 	@Auth()
 	async addMainMessage(
 		@User('_id') _id: string,
-		@Body() data: { message: string; created: Date}
+		@Body() data: { message: string; created: Date }
 	) {
 		return this.userService.addMainMessage(_id, data.message, data.created)
 	}

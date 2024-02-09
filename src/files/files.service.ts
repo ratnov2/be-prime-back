@@ -126,6 +126,7 @@ export class FilesService {
 					//newCalendarPhoto[type] = newPhoto
 					user2.calendarPhotos = [...user2.calendarPhotos, newCalendarPhoto]
 				}
+				
 				// if (created.getDate === createdUserLast.created)
 				// 	// const newPhotos = {
 				// 	// 	created: flag,
