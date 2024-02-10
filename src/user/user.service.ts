@@ -75,8 +75,6 @@ export class UserService {
 	// }
 
 	async updateProfileInfo(_id: string, data: UpdateInfoDto) {
-		console.log('@@@')
-
 		let user = await this.userModel.findById(_id)
 		user.lastName = data.lastName
 		user.firstName = data.firstName
@@ -159,6 +157,7 @@ export class UserService {
 				// 		: 1,
 			}
 		)
+
 		return users
 	}
 	async getLatestPhoto() {
@@ -209,6 +208,8 @@ export class UserService {
 	): Promise<DocumentType<UserModel> | null> {
 		const user = await this.userModel.findById(id).exec()
 		const friendUser = await this.userModel.findById(friendId.friendId).exec()
+		//console.log(id, friendId.friendId);
+
 		if (user._id.equals(friendUser._id))
 			throw new NotFoundException('User not found')
 		if (!user || !friendUser) throw new NotFoundException('User not found')
@@ -252,16 +253,18 @@ export class UserService {
 			let userIndexDelete = undefined
 			let FriendIndexDelete = undefined
 			for (let i = 0; i < lengthMax; i++) {
-				if (user.friendship?.[i]._id.equals(friendUser._id)) {
+				if (user.friendship?.[i]?._id.equals(friendUser._id)) {
 					userIndexDelete = i
 				}
 
-				if (user.friendship?.[i]._id.equals(friendUser._id)) {
+				if (friendUser.friendship?.[i]?._id.equals(user._id)) {
 					FriendIndexDelete = i
 				}
 			}
-			user.friendship.splice(userIndexDelete)
-			friendUser.friendship.splice(FriendIndexDelete)
+			userIndexDelete !== undefined &&
+				user.friendship.splice(userIndexDelete, 1)
+			FriendIndexDelete !== undefined &&
+				friendUser.friendship.splice(FriendIndexDelete, 1)
 		}
 		await user.save()
 		await friendUser.save()
