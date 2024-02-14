@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common'
 import { ModelType, DocumentType } from '@typegoose/typegoose/lib/types'
 import { genSalt, hash } from 'bcryptjs'
-import mongoose, { Types } from 'mongoose'
+import mongoose, { ObjectId, Types } from 'mongoose'
 import { InjectModel } from 'nestjs-typegoose'
 import {
 	UpdateDto,
@@ -205,18 +205,32 @@ export class UserService {
 	async addFriend(
 		id: string,
 		friendId: { friendId: string; status: '0' | '1' | '2' | '3' }
-	): Promise<DocumentType<UserModel> | null> {
+	): Promise<DocumentType<any> | null> {
 		const user = await this.userModel.findById(id).exec()
 		const friendUser = await this.userModel.findById(friendId.friendId).exec()
 		//console.log(id, friendId.friendId);
-
+		let status = '0'
+		const friendship: any = []
+		let friendshipObj = { _id: '' as any, status: '' }
 		if (user._id.equals(friendUser._id))
 			throw new NotFoundException('User not found')
 		if (!user || !friendUser) throw new NotFoundException('User not found')
+		//test
 		if (friendId.status === ('11' as '1')) {
 			user.friendship = [] as any
 			friendUser.friendship = [] as any
 		}
+		if (friendId.status === ('add_All' as '1')) {
+			let newReq1 = {
+				_id: friendUser._id,
+				status: '2' as '2',
+			}
+			let newReq2 = { _id: user._id, status: '1' as '1' }
+			user.friendship.push(newReq1)
+			friendUser.friendship.push(newReq2)
+			status = '1'
+		}
+		//test
 		if (friendId.status === '1') {
 			//request in friend
 			for (let i = 0; i < user.friendship.length; i++) {
@@ -227,9 +241,13 @@ export class UserService {
 				_id: friendUser._id,
 				status: '1' as '1',
 			}
+			friendshipObj._id = user._id
+			friendshipObj.status = '2'
+			friendship.push(friendshipObj)
 			let newReq2 = { _id: user._id, status: '2' as '2' }
 			user.friendship.push(newReq1)
 			friendUser.friendship.push(newReq2)
+			status = '2'
 		} else if (friendId.status === '3') {
 			//add friends
 			for (let i = 0; i < user.friendship.length; i++) {
@@ -242,6 +260,10 @@ export class UserService {
 				if (friendUser.friendship[i]._id.equals(user._id)) {
 					let newObj = { ...friendUser.friendship[i], status: '3' as '3' }
 					friendUser.friendship[i] = newObj
+					friendshipObj._id = user._id
+					friendshipObj.status = '3'
+					friendship.push(friendshipObj)
+					status = '3'
 				}
 			}
 		} else if (friendId.status === '0') {
@@ -259,6 +281,7 @@ export class UserService {
 
 				if (friendUser.friendship?.[i]?._id.equals(user._id)) {
 					FriendIndexDelete = i
+					status = '0'
 				}
 			}
 			userIndexDelete !== undefined &&
@@ -268,7 +291,16 @@ export class UserService {
 		}
 		await user.save()
 		await friendUser.save()
-		return friendUser
+		//return friendUser
+		return {
+			email: friendUser.email,
+			_id: friendUser._id,
+			firstName: friendUser.firstName,
+			lastName: friendUser.lastName,
+			avatar: friendUser.avatar,
+			friendship: friendship,
+			// ff:friendUser.
+		}
 	}
 	async getAllFriend(id: string) {
 		const user = await this.userModel.findById(id).exec()
