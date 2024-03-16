@@ -5,9 +5,10 @@ import {
 	Post,
 	Query,
 	UploadedFile,
+	UploadedFiles,
 	UseInterceptors,
 } from '@nestjs/common'
-import { FileInterceptor } from '@nestjs/platform-express'
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express'
 import { FileResponse } from './dto/file.response'
 import { FilesService } from './files.service'
 import { User } from 'src/user/decorators/user.decorator'
@@ -27,6 +28,19 @@ export class FilesController {
 		@Query('folder') folder?: 'main' | 'second' | 'avatar',
 		@Query('type') type?: 'frontPhoto' | 'backPhoto'
 	) {
-		return this.filesService.saveFiles([file], folder,type, user)
+		return this.filesService.saveFiles([file], folder, type, user)
+	}
+
+	@Auth()
+	@Post('two')
+	@HttpCode(200)
+	@UseInterceptors(FilesInterceptor('files'))
+	async uploadFiles(
+		@UploadedFiles() file: Array<Express.Multer.File>,
+		@User() user: UserModel,
+		@Query('folder') folder?: 'main',
+		@Query('type') type?: 'frontPhoto_backPhoto'
+	) {
+		return this.filesService.saveTwoFiles(file, folder, type, user)
 	}
 }

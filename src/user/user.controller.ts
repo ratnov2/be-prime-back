@@ -29,7 +29,7 @@ export class UserController {
 	constructor(private readonly userService: UserService) {}
 
 	@Get('profile')
-	@Auth()
+	@Auth('user')
 	async getProfile(@User('_id') _id: string) {
 		return this.userService.byId(_id)
 	}
@@ -88,10 +88,15 @@ export class UserController {
 	async getCountUsers() {
 		return this.userService.getCount()
 	}
-	@Get('latest-photo')
+	@Get('latest-photo-friends')
 	@Auth()
-	async getLatestPhoto() {
-		return this.userService.getLatestPhoto()
+	async getLatestPhotoFriends(@User('_id') _id: string) {
+		return this.userService.getLatestPhotoFriends(_id)
+	}
+	@Get('latest-photo-people')
+	@Auth()
+	async getLatestPhotoPeople() {
+		return this.userService.getLatestPhotoPeople()
 	}
 	@Get()
 	@Auth('admin')
@@ -129,7 +134,7 @@ export class UserController {
 		@User('_id') _id: string,
 		@Body() data: { name: string; id: string }
 	) {
-		return this.userService.findUsersByName(data.name,data.id)
+		return this.userService.findUsersByName(data.name, data.id)
 	}
 
 	//FRiends

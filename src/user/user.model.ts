@@ -22,7 +22,7 @@ export class IcalendarPhotos {
 			locate: string
 		}
 	}
-
+	
 	@prop({ default: '' })
 	comment: string
 

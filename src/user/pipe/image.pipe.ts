@@ -11,8 +11,6 @@ export class ImagePipe
   async transform(image: Express.Multer.File): Promise<any> {
     const pathToSave = 'public/images';
 
-    console.log('image', image);
-
     try {
       accessSync(pathToSave); // will either "throw an error" or return "undefined"
       const imageType = image.mimetype.split('/')[1]; // will get the filetype extension

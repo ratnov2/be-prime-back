@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common'
 import { ModelType, DocumentType } from '@typegoose/typegoose/lib/types'
 import { genSalt, hash } from 'bcryptjs'
-import mongoose, { ObjectId, Types } from 'mongoose'
+import mongoose, { Mongoose, ObjectId, Types } from 'mongoose'
 import { InjectModel } from 'nestjs-typegoose'
 import {
 	UpdateDto,
@@ -21,9 +21,9 @@ export class UserService {
 		@InjectModel(UserModel) private readonly userModel: ModelType<UserModel>
 	) {}
 
-	async byId(id: string): Promise<DocumentType<UserModel>> {
+	async byId(id: string): Promise<DocumentType<any>> {
 		const user = await this.userModel.findById(id).exec()
-		if (user) return user
+		if (user) return returnUserFields(user)
 		throw new NotFoundException('User not found')
 	}
 
@@ -38,7 +38,6 @@ export class UserService {
 		const user = await this.userModel.findById(id).exec()
 		let defaultKeys = ['photoOne', 'photoTwo', 'photoThree']
 		let key = data.key
-		console.log(defaultKeys.indexOf(key), defaultKeys.indexOf(key), key)
 		if (!user) throw new NotFoundException('user not found')
 		if (defaultKeys.indexOf(key) === -1)
 			throw new BadGatewayException('Bad Key')
@@ -160,7 +159,67 @@ export class UserService {
 
 		return users
 	}
-	async getLatestPhoto() {
+	async getLatestPhotoFriends(_id: string) {
+		// let latest = []
+		// let users = await this.userModel.find()
+		// // users.map((el) => {
+		// // 	let latestPhoto = {
+		// // 		calendarPhotos: el.calendarPhotos[el.calendarPhotos.length - 1],
+		// // 		name: el.firstName,
+		// // 		_id: el._id,
+
+		// // 		// gg: el.
+		// // 	}
+		// // 	if (latestPhoto.calendarPhotos) {
+		// // 		latest.push(latestPhoto)
+		// // 	}
+		// // })
+		// return latest
+
+		const today = new Date()
+		const twoDaysAgo = new Date(today)
+
+		twoDaysAgo.setDate(today.getDate() - 2)
+
+		const user = await this.userModel.findById(_id)
+
+		if (!user) {
+			throw new Error('Пользователь не найден')
+		}
+
+		const friendIds = user.friendship.map((el) => el._id)
+		const friendsPhotos = await this.userModel.aggregate([
+			{ $match: { _id: { $in: friendIds } } },
+			{ $unwind: '$calendarPhotos' },
+			{
+				$match: {
+					'calendarPhotos.created': { $gte: twoDaysAgo, $lte: today },
+				},
+			},
+			{
+				$group: {
+					_id: '$_id',
+					latestPhoto: { $last: '$calendarPhotos' },
+				},
+			},
+			{
+				$project: {
+					_id: 1,
+					latestPhoto: 1,
+				},
+			},
+		])
+
+		console.log(friendsPhotos)
+
+		const latestPhotos = friendsPhotos.map((friend) => ({
+			_id: friend._id,
+			latestPhoto: friend.latestPhoto,
+		}))
+
+		return latestPhotos
+	}
+	async getLatestPhotoPeople() {
 		let latest = []
 		let users = await this.userModel.find()
 		users.map((el) => {
@@ -221,14 +280,22 @@ export class UserService {
 			friendUser.friendship = [] as any
 		}
 		if (friendId.status === ('add_All' as '1')) {
-			let newReq1 = {
-				_id: friendUser._id,
-				status: '2' as '2',
+			for (let i = 0; i < user.friendship.length; i++) {
+				if (user.friendship[i]._id.equals(friendUser._id)) {
+					let newObj = { ...user.friendship[i], status: '2' as '2' }
+					user.friendship[i] = newObj
+				}
 			}
-			let newReq2 = { _id: user._id, status: '1' as '1' }
-			user.friendship.push(newReq1)
-			friendUser.friendship.push(newReq2)
-			status = '1'
+			for (let i = 0; i < friendUser.friendship.length; i++) {
+				if (friendUser.friendship[i]._id.equals(user._id)) {
+					let newObj = { ...friendUser.friendship[i], status: '2' as '2' }
+					friendUser.friendship[i] = newObj
+					friendshipObj._id = user._id
+					friendshipObj.status = '2'
+					friendship.push(friendshipObj)
+					status = '2'
+				}
+			}
 		}
 		//test
 		if (friendId.status === '1') {
@@ -299,7 +366,6 @@ export class UserService {
 			lastName: friendUser.lastName,
 			avatar: friendUser.avatar,
 			friendship: friendship,
-			// ff:friendUser.
 		}
 	}
 	async getAllFriend(id: string) {
@@ -308,15 +374,15 @@ export class UserService {
 		let result = {
 			friendship: await Promise.all(
 				user.friendship.map(async (friend) => {
+					console.log(friend.status)
 					let req = await this.userModel.findById(friend._id)
 					let result = {
-						friends: req,
+						friends: returnUserFields(req),
 						status: friend.status,
 					}
 					return result
 				})
 			),
-
 			_id: user._id,
 		}
 
@@ -474,3 +540,18 @@ export class UserService {
 
 //1user touch getAddFriend -> status(1) ->user[friend[user2,status:1]] user[friend[user1,status:1]]
 //2user	click take question friend ->status(2) -> user[friend[user2,status:2]] user[friend[user1,status:2]]
+const returnUserFields = (user: UserModel) => {
+	return {
+		_id: user._id,
+		email: user.email,
+		isAdmin: user.isAdmin,
+		firstName: user.firstName,
+		lastName: user.lastName,
+		avatar: user.avatar,
+		friendship: user.friendship,
+		favoritePhotos: user.favoritePhotos,
+		calendarPhotos: user.calendarPhotos,
+		createdAt: user.createdAt,
+		latestPhoto: user.calendarPhotos[user.calendarPhotos.length - 1],
+	}
+}
