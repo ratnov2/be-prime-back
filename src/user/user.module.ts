@@ -26,7 +26,7 @@ import { CronModel } from 'src/cron/cron.model'
 			},
 		]),
 	],
-	providers: [UserService],
+	providers: [UserService,MyCronService],
 	exports: [UserService],
 })
 export class UserModule {}

@@ -181,7 +181,7 @@ export class UserService {
 		const today = new Date()
 		const twoDaysAgo = new Date(today)
 		const existingCronData = await this.cronModel.findOne()
-		if(!existingCronData) return 
+		if (!existingCronData) return
 		const cronDate = new Date(existingCronData.lastRunTime)
 		//twoDaysAgo.setDate(today.getDate() - 2)
 		// console.log('day',new Date(cronDate).getDate());
@@ -205,25 +205,20 @@ export class UserService {
 			{
 				$group: {
 					_id: '$_id',
+					firstName: { $first: '$firstName' },
 					latestPhoto: { $last: '$calendarPhotos' },
 				},
 			},
 			{
 				$project: {
 					_id: 1,
+					firstName: 1,
 					latestPhoto: 1,
 				},
 			},
 		])
 
-		console.log(friendsPhotos)
-
-		const latestPhotos = friendsPhotos.map((friend) => ({
-			_id: friend._id,
-			latestPhoto: friend.latestPhoto,
-		}))
-
-		return latestPhotos
+		return friendsPhotos
 	}
 	async getLatestPhotoPeople() {
 		let latest = []
@@ -450,14 +445,14 @@ export class UserService {
 	) {
 		const userPost = await this.userModel.findById(data.userId).exec()
 
-		let ff = await this.userModel.findOne(
-			{ _id: data.userId },
-			{
-				calendarPhotos: {
-					$elemMatch: { created: data.created },
-				},
-			}
-		)
+		// let ff = await this.userModel.findOne(
+		// 	{ _id: data.userId },
+		// 	{
+		// 		calendarPhotos: {
+		// 			$elemMatch: { created: data.created },
+		// 		},
+		// 	}
+		// )
 		//console.log(ff.calendarPhotos[0].comments)
 		//const users = ff.calendarPhotos[0].comments.map((el) => el._id)
 		// const FF2 = await this.userModel
@@ -467,62 +462,102 @@ export class UserService {
 		// 		},
 		// 	})
 		// 	.select(['_id','avatar'])
-		const FF3 = await this.userModel.aggregate([
-			{
-				$match: {
-					email: userPost.email,
-					//_id:data.userId
-				},
-			},
-			{
-				$unwind: '$calendarPhotos',
-			},
-			{
-				$group: {
-					_id: '$calendarPhotos.comments',
-				},
-			},
 
-			{
-				$lookup: {
-					from: 'User',
-					localField: '_id._id',
-					pipeline: [
-						{
-							$project: {
-								email: 1,
-								avatar: 1,
-								firstName: 1,
-							},
-						},
-					],
-					foreignField: '_id',
-					as: 'foret',
-				},
-			},
-			{
-				$project: {
-					foret: 1,
-				},
-			},
-		])
+		// const FF3 = await this.userModel.aggregate([
+		// 	{
+		// 		$match: {
+		// 			//email: userPost.email,
+		// 			_id:data.userId
+		// 		},
+		// 	},
+		// 	{
+		// 		$unwind: '$calendarPhotos',
+		// 	},
+		// 	{
+		// 		$group: {
+		// 			_id: '$calendarPhotos.comments',
+		// 		},
+		// 	},
 
-		const hashIds = {}
-		FF3[0]?.foret.map((foret: { _id: string | number }) => {
-			hashIds[foret._id] = foret
-		})
-		const result = []
-		FF3[0]?._id.map((_id: any) => {
-			const newComment = {
-				...hashIds[_id._id],
-				message: _id.message,
-				created: _id.created,
+		// 	{
+		// 		$lookup: {
+		// 			from: 'User',
+		// 			localField: '_id._id',
+		// 			pipeline: [
+		// 				{
+		// 					$project: {
+		// 						email: 1,
+		// 						avatar: 1,
+		// 						firstName: 1,
+		// 					},
+		// 				},
+		// 			],
+		// 			foreignField: '_id',
+		// 			as: 'foret',
+		// 		},
+		// 	},
+		// 	{
+		// 		$project: {
+		// 			foret: 1,
+		// 		},
+		// 	},
+		// ])
+
+		// const hashIds = {}
+		// FF3[0]?.foret.map((foret: { _id: string | number }) => {
+		// 	hashIds[foret._id] = foret
+		// })
+		// const result = []
+		// FF3[0]?._id.map((_id: any) => {
+		// 	const newComment = {
+		// 		...hashIds[_id._id],
+		// 		message: _id.message,
+		// 		created: _id.created,
+		// 	}
+		// 	result.push(newComment)
+		// })
+		// console.log("result", result)
+		const user = await this.userModel.findById(data.userId)
+
+		if (!user) {
+			throw new Error('Пользователь не найден')
+		}
+
+		const lastPhoto = user.calendarPhotos[user.calendarPhotos.length - 1] // Последнее фото пользователя
+
+		if (!lastPhoto) {
+			throw new Error('У пользователя нет фотографий')
+		}
+
+		// Проверяем, совпадает ли созданное время последнего фото с временной меткой из запроса
+		if (
+			new Date(lastPhoto.created).getTime() === new Date(data.created).getTime()
+		) {
+			// Если совпадает, то извлекаем комментарии к последнему фото
+			console.log('F@!')
+
+			const comments = lastPhoto.comments
+
+			// Создаем массив для хранения обработанных комментариев
+			const processedComments = []
+
+			// Для каждого комментария извлекаем соответствующую информацию о пользователе и добавляем в массив processedComments
+			for (const comment of comments) {
+				const userComment = await this.userModel.findById(comment._id)
+				if (userComment) {
+					processedComments.push({
+						_id: userComment._id,
+						avatar: userComment.avatar,
+						created: userComment.createdAt,
+						comment: comment.message,
+						firstName: userComment.firstName,
+					})
+				}
 			}
-			result.push(newComment)
-		})
-		console.log(result)
-
-		return result
+			return processedComments
+		} else {
+			throw new NotFoundException('last time is expired')
+		}
 	}
 	async getCommentByLink(
 		id: string, //sentedUser

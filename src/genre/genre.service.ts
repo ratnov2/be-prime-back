@@ -54,11 +54,9 @@ export class GenreService {
 
 	async getCollections(): Promise<ICollection[]> {
 		const genres = await this.getAll()
-
 		const collections = await Promise.all(
 			genres.map(async (genre) => {
 				const moviesByGenre = await this.movieService.byGenres([genre._id])
-
 				const result: ICollection = {
 					_id: String(genre._id),
 					title: genre.name,

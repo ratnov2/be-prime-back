@@ -79,4 +79,9 @@ export class MyCronService {
 			})
 		}
 	}
+	async getCronTime(): Promise<Date> {
+		const existingCronData = await this.cronModel.findOne()
+		if (!existingCronData.lastRunTime) return undefined
+		return existingCronData.lastRunTime
+	}
 }

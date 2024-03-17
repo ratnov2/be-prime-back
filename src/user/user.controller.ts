@@ -23,10 +23,14 @@ import {
 import { IdValidationPipe } from 'src/pipes/id.validation.pipe'
 import { UserModel } from './user.model'
 import { Types } from 'mongoose'
+import { MyCronService } from 'src/cron/cron.cervice'
 
 @Controller('users')
 export class UserController {
-	constructor(private readonly userService: UserService) {}
+	constructor(
+		private readonly userService: UserService,
+		private readonly cronService: MyCronService
+	) {}
 
 	@Get('profile')
 	@Auth('user')
@@ -82,7 +86,11 @@ export class UserController {
 	) {
 		return this.userService.toggleFavorite(movieId, user)
 	}
-
+	@Get('cron')
+	@Auth()
+	async getProfile2() {
+		return this.cronService.getCronTime()
+	}
 	@Get('count')
 	@Auth('admin')
 	async getCountUsers() {
@@ -103,7 +111,6 @@ export class UserController {
 	async getUsers(@Query('searchTerm') searchTerm?: string) {
 		return this.userService.getAll(searchTerm)
 	}
-
 	@Get(':id')
 	@Auth()
 	async getUser(@Param('id', IdValidationPipe) id: string) {
@@ -151,6 +158,7 @@ export class UserController {
 	async asyncGetAllFriend(@User('_id') _id: string) {
 		return this.userService.getAllFriend(_id)
 	}
+
 	@Post('profile/main-message')
 	@Auth()
 	async addMainMessage(
