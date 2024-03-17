@@ -14,11 +14,13 @@ import {
 } from './dto/update.dto'
 
 import { IcalendarPhotos, UserModel } from './user.model'
+import { CronModel } from 'src/cron/cron.model'
 
 @Injectable()
 export class UserService {
 	constructor(
-		@InjectModel(UserModel) private readonly userModel: ModelType<UserModel>
+		@InjectModel(UserModel) private readonly userModel: ModelType<UserModel>,
+		@InjectModel(CronModel) private readonly cronModel: ModelType<CronModel>
 	) {}
 
 	async byId(id: string): Promise<DocumentType<any>> {
@@ -178,9 +180,13 @@ export class UserService {
 
 		const today = new Date()
 		const twoDaysAgo = new Date(today)
-
-		twoDaysAgo.setDate(today.getDate() - 2)
-
+		const existingCronData = await this.cronModel.findOne()
+		if(!existingCronData) return 
+		const cronDate = new Date(existingCronData.lastRunTime)
+		//twoDaysAgo.setDate(today.getDate() - 2)
+		// console.log('day',new Date(cronDate).getDate());
+		// console.log('hours',new Date(cronDate).getHours());
+		// console.log('hours',new Date(cronDate).getMinutes());
 		const user = await this.userModel.findById(_id)
 
 		if (!user) {
@@ -193,7 +199,7 @@ export class UserService {
 			{ $unwind: '$calendarPhotos' },
 			{
 				$match: {
-					'calendarPhotos.created': { $gte: twoDaysAgo, $lte: today },
+					'calendarPhotos.created': { $gte: cronDate, $lte: today },
 				},
 			},
 			{

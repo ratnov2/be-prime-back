@@ -16,6 +16,8 @@ import { TypegooseModule } from 'nestjs-typegoose'
 import { RatingModule } from './rating/rating.module'
 import { MovieModule } from './movie/movie.module'
 import { MailModule } from './mail/mail.module';
+import { MyCronService } from './cron/cron.cervice'
+import { CronModule } from './cron/genre.module'
 
 @Module({
 	imports: [
@@ -34,6 +36,7 @@ import { MailModule } from './mail/mail.module';
 		TelegramModule,
 		RatingModule,
 		MailModule,
+		CronModule
 	],
 	controllers: [AppController],
 	providers: [AppService],
