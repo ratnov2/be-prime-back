@@ -179,7 +179,6 @@ export class UserService {
 		// return latest
 
 		const today = new Date()
-		const twoDaysAgo = new Date(today)
 		const existingCronData = await this.cronModel.findOne()
 		if (!existingCronData) return
 		const cronDate = new Date(existingCronData.lastRunTime)
@@ -217,25 +216,34 @@ export class UserService {
 				},
 			},
 		])
-
+		
+		console.log("populatedLatestPhotos",friendsPhotos)
 		return friendsPhotos
 	}
 	async getLatestPhotoPeople() {
-		let latest = []
-		let users = await this.userModel.find()
-		users.map((el) => {
-			let latestPhoto = {
-				calendarPhotos: el.calendarPhotos[el.calendarPhotos.length - 1],
-				name: el.firstName,
-				_id: el._id,
+		const latestPhotos = await this.userModel.aggregate([
+			{ $unwind: '$calendarPhotos' },
+			{
+				$group: {
+					_id: '$_id',
+					latestPhoto: { $last: '$calendarPhotos' },
+				},
+			},
+			{
+				$sort: {
+					'latestPhoto.created': -1, // Сортировка в порядке убывания по времени создания
+				},
+			},
+		])
 
-				// gg: el.
-			}
-			if (latestPhoto.calendarPhotos) {
-				latest.push(latestPhoto)
-			}
+		// Заполнение информации о пользователях (имя, аватар и т.д.)
+		const populatedLatestPhotos = await this.userModel.populate(latestPhotos, {
+			path: '_id',
+			select: 'firstName avatar', // Выбор нужных полей
 		})
-		return latest
+		console.log("populatedLatestPhotos",populatedLatestPhotos)
+
+		return populatedLatestPhotos
 	}
 	async getAll(searchTerm?: string): Promise<DocumentType<UserModel>[]> {
 		let options = {}
