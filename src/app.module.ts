@@ -15,9 +15,10 @@ import { UserModule } from './user/user.module'
 import { TypegooseModule } from 'nestjs-typegoose'
 import { RatingModule } from './rating/rating.module'
 import { MovieModule } from './movie/movie.module'
-import { MailModule } from './mail/mail.module';
+import { MailModule } from './mail/mail.module'
 import { MyCronService } from './cron/cron.cervice'
 import { CronModule } from './cron/genre.module'
+import { NotificationModule } from './notification/notification.module'
 
 @Module({
 	imports: [
@@ -36,7 +37,8 @@ import { CronModule } from './cron/genre.module'
 		TelegramModule,
 		RatingModule,
 		MailModule,
-		CronModule
+		CronModule,
+		NotificationModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
