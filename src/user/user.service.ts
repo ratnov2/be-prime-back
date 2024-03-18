@@ -205,6 +205,7 @@ export class UserService {
 				$group: {
 					_id: '$_id',
 					firstName: { $first: '$firstName' },
+					avatar: { $first: '$avatar' },
 					latestPhoto: { $last: '$calendarPhotos' },
 				},
 			},
@@ -212,12 +213,13 @@ export class UserService {
 				$project: {
 					_id: 1,
 					firstName: 1,
+					avatar: 1,
 					latestPhoto: 1,
 				},
 			},
 		])
-		
-		console.log("populatedLatestPhotos",friendsPhotos)
+
+		console.log('populatedLatestPhotos', friendsPhotos)
 		return friendsPhotos
 	}
 	async getLatestPhotoPeople() {
@@ -241,7 +243,7 @@ export class UserService {
 			path: '_id',
 			select: 'firstName avatar', // Выбор нужных полей
 		})
-		console.log("populatedLatestPhotos",populatedLatestPhotos)
+		console.log('populatedLatestPhotos', populatedLatestPhotos)
 
 		return populatedLatestPhotos
 	}

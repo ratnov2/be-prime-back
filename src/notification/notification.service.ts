@@ -7,7 +7,7 @@ const expo = new Expo()
 export class NotificationService {
 	async sendNotification(deviceToken: string, message2: string) {
 		// Check that all your push tokens appear to be valid Expo push tokens
-		if (!Expo.isExpoPushToken("APA91bEOlBTitjek1tv5yNXnjYst0VKKyVH8Tgkb-TzT0PsipcEizavom7KTkp-AEkfYV26qZpnWte57aCCtzoCw_qXOojc1M26Sh-PB34B7nVEHDFf19MdUYmnNJW6MwqOD2XbMHxDH")) {
+		if (!Expo.isExpoPushToken(deviceToken)) {
 			console.error(`expo-push-token is not a valid Expo push token`)
 		}
 		const messages = []
