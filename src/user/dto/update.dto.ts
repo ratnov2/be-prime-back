@@ -27,4 +27,7 @@ export class UpdateDtoFavoritePhotos {
 	@MinLength(6, { message: 'Password cannot be less than 6 characters' })
 	@IsString()
 	photo: 'string'
+
+	@IsString()
+	created: 'string'
 }

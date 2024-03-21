@@ -13,6 +13,6 @@ export const User = createParamDecorator(
 	}
 )
 export const ObjDecorator = createParamDecorator((data: UpdateDtoFavoritePhotos) => {
-	console.log('@@@@@')
+	//console.log('@@@@@')
 	return data
 })

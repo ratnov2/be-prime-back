@@ -235,10 +235,10 @@ export class FilesService {
 		const createdUserLast = user.calendarPhotos[user.calendarPhotos.length - 1]
 		const lastCreatedPhoto = createdUserLast?.created
 
-		console.log(createdUserLast?.created?.getDate() === created.getDate())
+		//console.log(createdUserLast?.created?.getDate() === created.getDate())
 		// if (createdUserLast?.created?.getDate() === created.getDate())
 		// 	throw new NotFoundException('LOL')
-		console.log(files)
+		//console.log(files)
 
 		//	console.log(type);
 		if (type !== 'frontPhoto_backPhoto')
@@ -281,7 +281,7 @@ export class FilesService {
 					}
 				})
 			)
-			console.log('res', res)
+			//console.log('res', res)
 			const photos = {
 				[res[0].name === 'photo2.jpg' ? 'backPhoto' : 'frontPhoto']: {
 					created,

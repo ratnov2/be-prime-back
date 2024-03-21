@@ -46,7 +46,10 @@ export class UserService {
 		if (!data.photo) throw new BadGatewayException('Bad photo')
 
 		let OBJ = { ...user.favoritePhotos }
-		OBJ[key] = data.photo
+		OBJ[key] = {
+			photo: data.photo,
+			created: data.created,
+		}
 		user.favoritePhotos = OBJ
 		await user.save()
 		return
@@ -219,7 +222,7 @@ export class UserService {
 			},
 		])
 
-		console.log('populatedLatestPhotos', friendsPhotos)
+		//console.log('populatedLatestPhotos', friendsPhotos)
 		return friendsPhotos
 	}
 	async getLatestPhotoPeople() {
@@ -243,7 +246,7 @@ export class UserService {
 			path: '_id',
 			select: 'firstName avatar', // Выбор нужных полей
 		})
-		console.log('populatedLatestPhotos', populatedLatestPhotos)
+		//console.log('populatedLatestPhotos', populatedLatestPhotos)
 
 		return populatedLatestPhotos
 	}
@@ -385,7 +388,7 @@ export class UserService {
 		let result = {
 			friendship: await Promise.all(
 				user.friendship.map(async (friend) => {
-					console.log(friend.status)
+					//console.log(friend.status)
 					let req = await this.userModel.findById(friend._id)
 					let result = {
 						friends: returnUserFields(req),
@@ -417,34 +420,22 @@ export class UserService {
 		const sentedUser = await this.userModel.findById(id).exec()
 		const user = await this.userModel.findById(data.userId).exec()
 		//const friendUser = await this.userModel.findById(data.userId).exec()
-		if (!user || !sentedUser) throw new NotFoundException('User not found')
-		// let latestPhotoIndex = user.calendarPhotos.length - 1
-		// if (user.calendarPhotos[latestPhotoIndex].photo === data.link) {
-		// 	const newMessage = {
-		// 		_id: sentedUser._id,
-		// 		message: data.message,
-		// 	}
-		// 	user.calendarPhotos[latestPhotoIndex].comments.push(newMessage)
-		// }
-		// const newComment = {
-		// 	_id: id,
-		// 	message: data.message,
-		// }
+		const date = new Date()
+		//console.log(date)
 
-		let ff = await this.userModel.updateOne(
+		if (!user || !sentedUser) throw new NotFoundException('User not found')
+		await this.userModel.updateOne(
 			{ _id: data.userId, 'calendarPhotos.created': new Date(data.created) },
 			{
 				$push: {
 					'calendarPhotos.$.comments': {
 						_id: id,
 						message: data.message,
-						created: new Date(),
+						created: date,
 					},
 				},
 			}
 		)
-
-		const user2 = await this.userModel.findById(data.userId).exec()
 
 		await user.save()
 		return true
@@ -453,80 +444,6 @@ export class UserService {
 		id: string, //sentedUser
 		data: { created: string; userId: string }
 	) {
-		const userPost = await this.userModel.findById(data.userId).exec()
-
-		// let ff = await this.userModel.findOne(
-		// 	{ _id: data.userId },
-		// 	{
-		// 		calendarPhotos: {
-		// 			$elemMatch: { created: data.created },
-		// 		},
-		// 	}
-		// )
-		//console.log(ff.calendarPhotos[0].comments)
-		//const users = ff.calendarPhotos[0].comments.map((el) => el._id)
-		// const FF2 = await this.userModel
-		// 	.find({
-		// 		_id: {
-		// 			$in: [...users],
-		// 		},
-		// 	})
-		// 	.select(['_id','avatar'])
-
-		// const FF3 = await this.userModel.aggregate([
-		// 	{
-		// 		$match: {
-		// 			//email: userPost.email,
-		// 			_id:data.userId
-		// 		},
-		// 	},
-		// 	{
-		// 		$unwind: '$calendarPhotos',
-		// 	},
-		// 	{
-		// 		$group: {
-		// 			_id: '$calendarPhotos.comments',
-		// 		},
-		// 	},
-
-		// 	{
-		// 		$lookup: {
-		// 			from: 'User',
-		// 			localField: '_id._id',
-		// 			pipeline: [
-		// 				{
-		// 					$project: {
-		// 						email: 1,
-		// 						avatar: 1,
-		// 						firstName: 1,
-		// 					},
-		// 				},
-		// 			],
-		// 			foreignField: '_id',
-		// 			as: 'foret',
-		// 		},
-		// 	},
-		// 	{
-		// 		$project: {
-		// 			foret: 1,
-		// 		},
-		// 	},
-		// ])
-
-		// const hashIds = {}
-		// FF3[0]?.foret.map((foret: { _id: string | number }) => {
-		// 	hashIds[foret._id] = foret
-		// })
-		// const result = []
-		// FF3[0]?._id.map((_id: any) => {
-		// 	const newComment = {
-		// 		...hashIds[_id._id],
-		// 		message: _id.message,
-		// 		created: _id.created,
-		// 	}
-		// 	result.push(newComment)
-		// })
-		// console.log("result", result)
 		const user = await this.userModel.findById(data.userId)
 
 		if (!user) {
@@ -540,12 +457,11 @@ export class UserService {
 		}
 
 		// Проверяем, совпадает ли созданное время последнего фото с временной меткой из запроса
+		//console.log(lastPhoto.created,data.created);
 		if (
 			new Date(lastPhoto.created).getTime() === new Date(data.created).getTime()
 		) {
 			// Если совпадает, то извлекаем комментарии к последнему фото
-			console.log('F@!')
-
 			const comments = lastPhoto.comments
 
 			// Создаем массив для хранения обработанных комментариев
@@ -555,16 +471,21 @@ export class UserService {
 			for (const comment of comments) {
 				const userComment = await this.userModel.findById(comment._id)
 				if (userComment) {
+				//	console.log(comment)
+
 					processedComments.push({
 						_id: userComment._id,
 						avatar: userComment.avatar,
-						created: userComment.createdAt,
+						//@ts-ignore
+						created: comment.created,
 						comment: comment.message,
 						firstName: userComment.firstName,
 					})
 				}
 			}
+
 			return processedComments
+			
 		} else {
 			throw new NotFoundException('last time is expired')
 		}

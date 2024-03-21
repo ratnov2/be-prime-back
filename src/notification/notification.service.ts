@@ -14,8 +14,8 @@ export class NotificationService {
 		const message = {
 			to: deviceToken,
 			data: { extraData: 'Some data' },
-			title: 'Sent by backend server',
-			body: 'This push notification was sent by a backend server!',
+			title: 'EZ CAEF',
+			body: message2,
 		}
 		messages.push(message)
 		const chunks = expo.chunkPushNotifications(messages)

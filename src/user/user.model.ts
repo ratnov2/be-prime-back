@@ -22,7 +22,7 @@ export class IcalendarPhotos {
 			locate: string
 		}
 	}
-	
+
 	@prop({ default: '' })
 	comment: string
 
@@ -49,11 +49,26 @@ export class UserModel extends TimeStamps {
 	@prop({ default: [] })
 	calendarPhotos?: IcalendarPhotos[]
 
-	@prop({ default: { photoOne: null, photoTwo: null, photoThree: null } })
+	@prop({
+		default: {
+			photoOne: null,
+			photoTwo: null,
+			photoThree: null,
+		},
+	})
 	favoritePhotos: {
-		photoOne: string | null
-		photoTwo: string | null
-		photoThree: string | null
+		photoOne: {
+			photo: string
+			created: string
+		} | null
+		photoTwo: {
+			photo: string
+			created: string
+		} | null
+		photoThree: {
+			photo: string
+			created: string
+		} | null
 	}
 	@prop({ default: '' })
 	firstName?: string
