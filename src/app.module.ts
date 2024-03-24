@@ -13,25 +13,32 @@ import { AppService } from './app.service'
 //import { UserModule } from './user/user.module'
 
 import { TypegooseModule } from 'nestjs-typegoose'
-//import { RatingModule } from './rating/rating.module'
-
+import { RatingModule } from './rating/rating.module'
+import { MovieModule } from './movie/movie.module'
+import { MailModule } from './mail/mail.module'
+import { MyCronService } from './cron/cron.cervice'
+import { CronModule } from './cron/genre.module'
+import { NotificationModule } from './notification/notification.module'
 
 @Module({
 	imports: [
 		ConfigModule.forRoot(),
-		// TypegooseModule.forRootAsync({
-		// 	imports: [ConfigModule],
-		// 	inject: [ConfigService],
-		// 	useFactory: getMongoConfig,
-		// }),
-		// MovieModule,
-		// GenreModule,
-		// ActorModule,
-		// UserModule,
-		// AuthModule,
-		// FilesModule,
-		// TelegramModule,
-		// RatingModule,
+		TypegooseModule.forRootAsync({
+			imports: [ConfigModule],
+			inject: [ConfigService],
+			useFactory: getMongoConfig,
+		}),
+		MovieModule,
+		GenreModule,
+		ActorModule,
+		UserModule,
+		AuthModule,
+		FilesModule,
+		TelegramModule,
+		RatingModule,
+		MailModule,
+		CronModule,
+		NotificationModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
