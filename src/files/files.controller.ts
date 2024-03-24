@@ -12,7 +12,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express'
 import { FileResponse } from './dto/file.response'
 import { FilesService } from './files.service'
 import { User } from 'src/user/decorators/user.decorator'
-import { Auth } from 'src/auth/decorators/Auth.decorator'
+import { Auth } from 'src/auth/decorators/auth.decorator'
 import { UserModel } from 'src/user/user.model'
 
 @Controller('files')
