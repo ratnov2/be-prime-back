@@ -192,6 +192,7 @@ export class UserService {
 				},
 			},
 			{
+				//@ts-ignore
 				$group: {
 					_id: '$_id',
 					firstName: { $first: '$firstName' },
@@ -201,6 +202,7 @@ export class UserService {
 			},
 			{
 				$project: {
+					//@ts-ignore
 					_id: 1,
 					firstName: 1,
 					avatar: 1,
@@ -221,6 +223,7 @@ export class UserService {
 		const latestPhotos = await this.userModel.aggregate([
 			{ $unwind: '$calendarPhotos' },
 			{
+				//@ts-ignore
 				$group: {
 					_id: '$_id',
 					latestPhoto: { $last: '$calendarPhotos' },
