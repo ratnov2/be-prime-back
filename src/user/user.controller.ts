@@ -184,4 +184,29 @@ export class UserController {
 	) {
 		return this.userService.getPostUserByLink(_id, data)
 	}
+
+	///Reaction
+	@Post('reaction')
+	@Auth()
+	async addReaction(
+		@User('_id') _id: string,
+		@Body() data: { created: string; userId: string; reaction: TReaction }
+	) {
+		return this.userService.addReaction(_id, data)
+	}
+	@Get('reaction')
+	@Auth()
+	async getReaction(
+		@Query('userId') userId: string,
+		@Query('created') created: string
+	) {
+		return this.userService.getReaction({ created, userId })
+	}
 }
+export type TReaction =
+	| 'happy_face'
+	| 'laughing'
+	| 'kiss'
+	| 'straight_face'
+	| 'distress'
+//😁 || 😂 || 😍 || 😐 || 🤮

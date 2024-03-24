@@ -2,6 +2,7 @@ import { prop, Ref } from '@typegoose/typegoose'
 import { TimeStamps, Base } from '@typegoose/typegoose/lib/defaultClasses'
 import { ObjectId, Schema, Types } from 'mongoose'
 import { MovieModel } from 'src/movie/movie.model'
+import { TReaction } from './user.controller'
 
 export interface UserModel extends Base {}
 
@@ -31,6 +32,9 @@ export class IcalendarPhotos {
 		_id: Types.ObjectId
 		message: string
 	}[]
+
+	@prop({ default: [] })
+	photoReactions: { userId: string; reactionType: TReaction }[]
 }
 
 export class UserModel extends TimeStamps {

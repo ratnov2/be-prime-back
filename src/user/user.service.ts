@@ -15,6 +15,7 @@ import {
 
 import { IcalendarPhotos, UserModel } from './user.model'
 import { CronModel } from 'src/cron/cron.model'
+import { TReaction } from './user.controller'
 
 @Injectable()
 export class UserService {
@@ -25,8 +26,14 @@ export class UserService {
 
 	async byId(id: string): Promise<DocumentType<any>> {
 		const user = await this.userModel.findById(id).exec()
-		if (user) return returnUserFields(user)
-		throw new NotFoundException('User not found')
+		if (!user) throw new NotFoundException('User not found')
+		const fields = returnUserFields(user)
+		const reactions = await this.getReaction({
+			created: fields.latestPhoto.created as unknown as string,
+			userId: fields._id as unknown as string,
+		})
+		fields.latestPhoto.photoReactions = reactions
+		return fields
 	}
 
 	async getCalendarPhotos(id: string): Promise<IcalendarPhotos[]> {
@@ -165,30 +172,10 @@ export class UserService {
 		return users
 	}
 	async getLatestPhotoFriends(_id: string) {
-		// let latest = []
-		// let users = await this.userModel.find()
-		// // users.map((el) => {
-		// // 	let latestPhoto = {
-		// // 		calendarPhotos: el.calendarPhotos[el.calendarPhotos.length - 1],
-		// // 		name: el.firstName,
-		// // 		_id: el._id,
-
-		// // 		// gg: el.
-		// // 	}
-		// // 	if (latestPhoto.calendarPhotos) {
-		// // 		latest.push(latestPhoto)
-		// // 	}
-		// // })
-		// return latest
-
 		const today = new Date()
 		const existingCronData = await this.cronModel.findOne()
 		if (!existingCronData) return
 		const cronDate = new Date(existingCronData.lastRunTime)
-		//twoDaysAgo.setDate(today.getDate() - 2)
-		// console.log('day',new Date(cronDate).getDate());
-		// console.log('hours',new Date(cronDate).getHours());
-		// console.log('hours',new Date(cronDate).getMinutes());
 		const user = await this.userModel.findById(_id)
 
 		if (!user) {
@@ -221,8 +208,13 @@ export class UserService {
 				},
 			},
 		])
-
-		//console.log('populatedLatestPhotos', friendsPhotos)
+		for (let i = 0; i < friendsPhotos.length; i++) {
+			const reactions = await this.getReaction({
+				created: friendsPhotos[i].latestPhoto.created as unknown as string,
+				userId: friendsPhotos[i]._id as unknown as string,
+			})
+			friendsPhotos[i].latestPhoto.photoReactions = reactions
+		}
 		return friendsPhotos
 	}
 	async getLatestPhotoPeople() {
@@ -242,11 +234,29 @@ export class UserService {
 		])
 
 		// Заполнение информации о пользователях (имя, аватар и т.д.)
-		const populatedLatestPhotos = await this.userModel.populate(latestPhotos, {
+		const populatedLatestPhotos = (await this.userModel.populate(latestPhotos, {
 			path: '_id',
 			select: 'firstName avatar', // Выбор нужных полей
-		})
-		//console.log('populatedLatestPhotos', populatedLatestPhotos)
+		})) as unknown as {
+			_id: string
+			firstName: string
+			avatar: string
+			latestPhoto: {
+				created: string
+				comment: string
+				comments: Array<any>
+				photos: Array<any>
+				photoReactions: { userId: string; reactionType: TReaction }[]
+			}
+		}[]
+		for (let i = 0; i < populatedLatestPhotos.length; i++) {
+			const reactions = await this.getReaction({
+				created: populatedLatestPhotos[i].latestPhoto
+					.created as unknown as string,
+				userId: populatedLatestPhotos[i]._id as unknown as string,
+			})
+			populatedLatestPhotos[i].latestPhoto.photoReactions = reactions
+		}
 
 		return populatedLatestPhotos
 	}
@@ -471,7 +481,7 @@ export class UserService {
 			for (const comment of comments) {
 				const userComment = await this.userModel.findById(comment._id)
 				if (userComment) {
-				//	console.log(comment)
+					//	console.log(comment)
 
 					processedComments.push({
 						_id: userComment._id,
@@ -485,7 +495,6 @@ export class UserService {
 			}
 
 			return processedComments
-			
 		} else {
 			throw new NotFoundException('last time is expired')
 		}
@@ -501,6 +510,82 @@ export class UserService {
 			latestsPhoto.comments[i].message
 		}
 	}
+
+	async addReaction(
+		id: string, //sentedUser
+		data: { created: string; userId: string; reaction: TReaction }
+	) {
+		const userByPhoto = await this.userModel.findById(data.userId).exec()
+		if (!userByPhoto) return
+
+		let latestsPhoto =
+			userByPhoto.calendarPhotos[userByPhoto.calendarPhotos.length - 1]
+		if (
+			new Date(latestsPhoto.created).getTime() !==
+			new Date(data.created).getTime()
+		)
+			return
+		const newReaction = {
+			created: new Date(),
+			userId: id,
+			reactionType: data.reaction,
+		}
+
+		let flag = false
+		for (let i = 0; i < latestsPhoto.photoReactions.length; i++) {
+			if (
+				latestsPhoto.photoReactions[i].userId.toString() ===
+				(id as {}).toString()
+			) {
+				latestsPhoto.photoReactions[i] = newReaction
+				flag = true
+				break
+			}
+		}
+		if (!flag) {
+			latestsPhoto.photoReactions.push(newReaction)
+		}
+
+		userByPhoto.markModified('calendarPhotos')
+		await userByPhoto.save()
+
+		const reactions = await this.getReaction({
+			created: data.created,
+			userId: data.userId,
+		})
+
+		return reactions
+	}
+	async getReaction(data: { created: string; userId: string }) {
+		console.log(data)
+
+		const userByPhoto = await this.userModel.findById(data.userId).exec()
+		if (!userByPhoto) return
+
+		let latestsPhoto =
+			userByPhoto.calendarPhotos[userByPhoto.calendarPhotos.length - 1]
+
+		if (
+			new Date(latestsPhoto.created).getTime() !==
+			new Date(data.created).getTime()
+		)
+			return
+		const reaction = []
+		for (let i = 0; i < latestsPhoto.photoReactions.length; i++) {
+			const user = await this.userModel.findById(
+				latestsPhoto.photoReactions[i].userId
+			)
+			if (!user) continue
+			const obj = {
+				_id: user._id,
+				avatar: user.avatar,
+				reactionType: latestsPhoto.photoReactions[i].reactionType,
+			}
+			reaction.push(obj)
+		}
+		return reaction
+	}
+
 	//comments
 	// async addCommentuser(
 	// 	id: string,

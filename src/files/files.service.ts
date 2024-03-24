@@ -87,11 +87,12 @@ export class FilesService {
 						locate: '',
 					}
 					// if i  haven't CreatedPhoto in latest day and i add photo to there
-					const newCalendarPhoto = {
+					const newCalendarPhoto: IcalendarPhotos = {
 						created,
 						comment: '',
 						comments: [],
 						photos: { backPhoto: newPhoto },
+						photoReactions: [],
 					}
 
 					//newCalendarPhoto[type] = newPhoto
@@ -185,11 +186,12 @@ export class FilesService {
 					// }
 				} else {
 					// if i  haven't CreatedPhoto in latest day and i add photo to there
-					const newCalendarPhoto = {
+					const newCalendarPhoto: IcalendarPhotos = {
 						created,
 						comment: '',
 						comments: [],
 						photos: { [type]: newPhoto },
+						photoReactions: [],
 					}
 
 					//newCalendarPhoto[type] = newPhoto
@@ -294,11 +296,12 @@ export class FilesService {
 					locate: '',
 				},
 			}
-			const newCalendarPhoto = {
+			const newCalendarPhoto: IcalendarPhotos = {
 				created,
 				comment: '',
 				comments: [],
 				photos,
+				photoReactions: [],
 			}
 
 			//newCalendarPhoto[type] = newPhoto
