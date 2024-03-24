@@ -28,11 +28,15 @@ export class UserService {
 		const user = await this.userModel.findById(id).exec()
 		if (!user) throw new NotFoundException('User not found')
 		const fields = returnUserFields(user)
-		const reactions = await this.getReaction({
-			created: fields.latestPhoto.created as unknown as string,
-			userId: fields._id as unknown as string,
-		})
-		fields.latestPhoto.photoReactions = reactions
+		console.log(fields?.latestPhoto)
+		if (fields?.latestPhoto) {
+			const reactions = await this.getReaction({
+				created: fields.latestPhoto?.created as unknown as string,
+				userId: fields._id as unknown as string,
+			})
+			fields.latestPhoto.photoReactions = reactions
+		} 
+
 		return fields
 	}
 
@@ -566,7 +570,7 @@ export class UserService {
 			userByPhoto.calendarPhotos[userByPhoto.calendarPhotos.length - 1]
 
 		if (
-			new Date(latestsPhoto.created).getTime() !==
+			new Date(latestsPhoto?.created).getTime() !==
 			new Date(data.created).getTime()
 		)
 			return
@@ -609,6 +613,6 @@ const returnUserFields = (user: UserModel) => {
 		favoritePhotos: user.favoritePhotos,
 		calendarPhotos: user.calendarPhotos,
 		createdAt: user.createdAt,
-		latestPhoto: user.calendarPhotos[user.calendarPhotos.length - 1],
+		latestPhoto: user.calendarPhotos[user.calendarPhotos.length - 1] || null,
 	}
 }
