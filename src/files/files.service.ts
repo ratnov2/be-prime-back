@@ -11,11 +11,13 @@ import { IcalendarPhotos, UserModel } from 'src/user/user.model'
 import { InjectModel } from 'nestjs-typegoose'
 import { ModelType } from '@typegoose/typegoose/lib/types'
 import * as sharp from 'sharp'
+import { CronModel } from 'src/cron/cron.model'
 
 @Injectable()
 export class FilesService {
 	constructor(
-		@InjectModel(UserModel) private readonly UserModel: ModelType<UserModel>
+		@InjectModel(UserModel) private readonly UserModel: ModelType<UserModel>,
+		@InjectModel(CronModel) private readonly CronModel: ModelType<CronModel>
 	) {}
 	async saveFiles(
 		files: Express.Multer.File[],
@@ -47,7 +49,7 @@ export class FilesService {
 							fit: 'outside',
 						})
 						.toFormat('webp')
-						.webp({ quality: 10 })
+						.webp({ quality: 90 })
 						.toFile(join(`${writeFileFolder}.webp`))
 				})
 			)
@@ -131,7 +133,7 @@ export class FilesService {
 						fit: 'outside',
 					})
 					.toFormat('webp')
-					.webp({ quality: 10 })
+					.webp({ quality: 90 })
 					.toFile(join(`${writeFileFolder}.webp`))
 
 				const created = new Date()
@@ -231,10 +233,16 @@ export class FilesService {
 		user: UserModel
 	): Promise<any> {
 		if (folder !== 'main') throw new NotFoundException('incorrect path')
-
+		const cron = await this.CronModel.findOne()
 		const user2 = await this.UserModel.findById(user._id).exec()
 		const created = new Date()
 		const createdUserLast = user.calendarPhotos[user.calendarPhotos.length - 1]
+		if (
+			new Date(cron.lastRunTime).getTime() <=
+			new Date(createdUserLast?.created || '').getTime()
+		) {
+			throw { message: 'you have already photo' }
+		}
 		const lastCreatedPhoto = createdUserLast?.created
 
 		//console.log(createdUserLast?.created?.getDate() === created.getDate())
@@ -266,7 +274,7 @@ export class FilesService {
 							fit: 'outside',
 						})
 						.toFormat('webp')
-						.webp({ quality: 10 })
+						.webp({ quality: 90 })
 						.toFile(join(`${writeFileFolder}.webp`))
 
 					const newPhoto = {

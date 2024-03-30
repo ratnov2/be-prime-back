@@ -14,10 +14,14 @@ import { FilesService } from './files.service'
 import { User } from 'src/user/decorators/user.decorator'
 import { Auth } from 'src/auth/decorators/auth.decorator'
 import { UserModel } from 'src/user/user.model'
+import { MyCronService } from 'src/cron/cron.cervice'
 
 @Controller('files')
 export class FilesController {
-	constructor(private readonly filesService: FilesService) {}
+	constructor(
+		private readonly filesService: FilesService,
+		private readonly CronService: MyCronService
+	) {}
 	@Auth()
 	@Post()
 	@HttpCode(200)

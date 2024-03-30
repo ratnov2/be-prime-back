@@ -7,6 +7,9 @@ import { FilesService } from './files.service'
 import { UserModule } from 'src/user/user.module'
 import { TypegooseModule } from 'nestjs-typegoose'
 import { UserModel } from 'src/user/user.model'
+import { MyCronService } from 'src/cron/cron.cervice'
+import { CronModule } from 'src/cron/genre.module'
+import { CronModel } from 'src/cron/cron.model'
 
 @Module({
 	imports: [
@@ -17,12 +20,19 @@ import { UserModel } from 'src/user/user.model'
 					collection: 'User',
 				},
 			},
+			{
+				typegooseClass: CronModel,
+				schemaOptions: {
+					collection: 'cronmodels',
+				},
+			},
 		]),
+
 		ServeStaticModule.forRoot({
 			rootPath: `${path}/uploads`,
 			serveRoot: '/uploads',
 		}),
-		// UserModule,
+		CronModule,
 	],
 	providers: [FilesService],
 	controllers: [FilesController],
