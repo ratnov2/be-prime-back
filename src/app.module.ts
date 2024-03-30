@@ -43,4 +43,8 @@ import { NotificationModule } from './notification/notification.module'
 	controllers: [AppController],
 	providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+	constructor(private readonly MyCronService: MyCronService) {
+		this.MyCronService.runOnce() // Запускаем функцию при загрузке приложения
+	}
+}

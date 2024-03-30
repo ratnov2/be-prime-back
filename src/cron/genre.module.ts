@@ -6,5 +6,6 @@ import { TypegooseModule } from 'nestjs-typegoose'
 @Module({
     imports: [TypegooseModule.forFeature([CronModel])],
     providers: [MyCronService],
+    exports:[MyCronService]
 })
 export class CronModule {}

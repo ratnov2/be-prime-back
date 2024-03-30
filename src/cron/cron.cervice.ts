@@ -37,8 +37,6 @@ export class MyCronService {
 		@InjectModel(CronModel) private readonly cronModel: Model<CronModel>
 	) {
 		cron.schedule('0 0 * * *', async () => {
-			console.log('Cron job is running...')
-
 			const now = new Date()
 			// Вычисляем случайное количество времени в диапазоне от 9 до 23 часов
 			const randomHours = Math.floor(Math.random() * (23 - 9 + 1) + 9)
@@ -60,8 +58,6 @@ export class MyCronService {
 			// await this.saveCronTime(cronTime);
 
 			setTimeout(async () => {
-				console.log(cronTime)
-
 				await this.saveCronTime(cronTime)
 			}, randomHours * 3600 * 1000 + randomMinutes * 60 * 1000 + randomSeconds * 1000)
 		})
@@ -83,5 +79,14 @@ export class MyCronService {
 		const existingCronData = await this.cronModel.findOne()
 		if (!existingCronData.lastRunTime) return undefined
 		return existingCronData.lastRunTime
+	}
+	async runOnce() {
+		const cronTime = await this.cronModel.findOne()
+		if (!cronTime) {
+			await this.cronModel.create({
+				lastRunTime: new Date(),
+				cronTime,
+			})
+		}
 	}
 }

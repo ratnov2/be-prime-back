@@ -16,6 +16,7 @@ import {
 import { IcalendarPhotos, UserModel } from './user.model'
 import { CronModel } from 'src/cron/cron.model'
 import { TReaction } from './user.controller'
+import { identity } from 'rxjs'
 
 @Injectable()
 export class UserService {
@@ -126,6 +127,8 @@ export class UserService {
 	}
 
 	async findUsersByName(name: string, id: string) {
+		if (!name) return
+
 		const users = await this.userModel.find(
 			{
 				$expr: {
@@ -143,7 +146,7 @@ export class UserService {
 				firstName: 1,
 				friendship: {
 					$cond: {
-						if: { $in: [new mongoose.mongo.ObjectId(id), '$friendship._id'] },
+						if: { $in: [id, '$friendship._id'] },
 						then: {
 							$map: {
 								input: '$friendship',
@@ -151,7 +154,7 @@ export class UserService {
 								in: {
 									$cond: [
 										{
-											$eq: ['$$friend.id', new mongoose.mongo.ObjectId(id)],
+											$eq: ['$$friend.id', id],
 										},
 										{ id: '$$friend.id', status: '$$friend.status' },
 										'$$friend',
@@ -427,7 +430,7 @@ export class UserService {
 			{ $set: { 'calendarPhotos.$.comment': message } } ///@@CHECK
 		)
 
-		return true
+		return message
 	}
 	async addComment(
 		id: string, //sentedUser
@@ -454,7 +457,7 @@ export class UserService {
 		)
 
 		await user.save()
-		return true
+		return data.message
 	}
 	async getPostUserByLink(
 		id: string, //sentedUser
