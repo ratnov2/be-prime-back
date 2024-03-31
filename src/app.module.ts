@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, forwardRef } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 
 import { AppController } from './app.controller'
@@ -17,8 +17,9 @@ import { RatingModule } from './rating/rating.module'
 import { MovieModule } from './movie/movie.module'
 import { MailModule } from './mail/mail.module'
 import { MyCronService } from './cron/cron.cervice'
-import { CronModule } from './cron/genre.module'
+import { CronModule } from './cron/cron.module'
 import { NotificationModule } from './notification/notification.module'
+import { NotificationModel } from './notification/notification.model'
 
 @Module({
 	imports: [
@@ -38,7 +39,7 @@ import { NotificationModule } from './notification/notification.module'
 		RatingModule,
 		MailModule,
 		CronModule,
-		NotificationModule,
+		// forwardRef(() => NotificationModule)
 	],
 	controllers: [AppController],
 	providers: [AppService],

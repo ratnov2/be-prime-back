@@ -12,12 +12,13 @@ import { InjectModel } from 'nestjs-typegoose'
 import { ModelType } from '@typegoose/typegoose/lib/types'
 import * as sharp from 'sharp'
 import { CronModel } from 'src/cron/cron.model'
+import { NotificationModel } from 'src/notification/notification.model'
 
 @Injectable()
 export class FilesService {
 	constructor(
 		@InjectModel(UserModel) private readonly UserModel: ModelType<UserModel>,
-		@InjectModel(CronModel) private readonly CronModel: ModelType<CronModel>
+		@InjectModel(CronModel) private readonly CronModel: ModelType<CronModel>,
 	) {}
 	async saveFiles(
 		files: Express.Multer.File[],
