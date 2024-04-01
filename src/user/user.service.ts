@@ -63,7 +63,7 @@ export class UserService {
 		}
 		user.favoritePhotos = OBJ
 		await user.save()
-		return
+		return { message: true }
 	}
 
 	// async updateProfile(_id: string, data: UpdateDto) {

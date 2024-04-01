@@ -62,12 +62,12 @@ export class NotificationService {
 		const user = await this.NotificationModel.find()
 		if (!user) return { message: true }
 		const messages = []
-		const message2 = 'You lasts 5 min'
+		const message2 = '5 min left to capture a BePrime'
 		user.map((user) => {
 			const message = {
 				to: user.deviceToken,
 				data: { extraData: 'Some data' },
-				title: 'Be Prime',
+				title: '🙈 Time to BePrime 🙈',
 				body: message2,
 			}
 			messages.push(message)
