@@ -37,6 +37,11 @@ export class UserController {
 	async getProfile(@User('_id') _id: string) {
 		return this.userService.byId(_id)
 	}
+	@Get('profile/get-all-profiles')
+	@Auth()
+	async getAllProfiles() {
+		return this.userService.getAllProfiles()
+	}
 
 	@Get('profile/calendar-photos')
 	@Auth()

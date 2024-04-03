@@ -25,6 +25,13 @@ export class UserService {
 		@InjectModel(CronModel) private readonly cronModel: ModelType<CronModel>
 	) {}
 
+	async getAllProfiles(): Promise<DocumentType<any>> {
+		const user = await this.userModel.find()
+		if (!user) throw new NotFoundException('User not found')
+
+		return user
+	}
+
 	async byId(id: string): Promise<DocumentType<any>> {
 		const user = await this.userModel.findById(id).exec()
 		if (!user) throw new NotFoundException('User not found')
