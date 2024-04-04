@@ -137,6 +137,7 @@ export class UserService {
 
 	async findUsersByName(name: string, id: string) {
 		if (!name) return
+		//const users2 = await this.userModel.find()
 
 		const users = await this.userModel.find(
 			{
@@ -153,38 +154,26 @@ export class UserService {
 				avatar: 1,
 				_id: 1,
 				firstName: 1,
-				friendship: {
-					$cond: {
-						if: { $in: [id, '$friendship._id'] },
-						then: {
-							$map: {
-								input: '$friendship',
-								as: 'friend',
-								in: {
-									$cond: [
-										{
-											$eq: ['$$friend.id', id],
-										},
-										{ id: '$$friend.id', status: '$$friend.status' },
-										'$$friend',
-									],
-								},
-							},
-						},
-						else: null,
-					},
-				},
-				// 	id.length >= 12
-				// 		? {
-				// 				$elemMatch: {
-				// 					_id: new mongoose.mongo.ObjectId(id),
-				// 				},
-				// 		  }
-				// 		: 1,
+				friendship: 1,
 			}
 		)
+		for (let i = 0; i < users.length; i++) {
+			const user: any = users[i]
 
+			const friend = user.friendship.find((friend) => friend._id.equals(id))
+			user.friendship = friend
+				? {
+						avatar: await this.getAvatarById(id),
+						...friend,
+				  }
+				: null
+		}
+	
 		return users
+	}
+	async getAvatarById(id: string) {
+		const user = await this.userModel.findById(id, { avatar: 1 })
+		return user ? user.avatar : null
 	}
 	async getLatestPhotoFriends(_id: string) {
 		const today = new Date()
