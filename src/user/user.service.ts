@@ -17,12 +17,15 @@ import { IcalendarPhotos, UserModel } from './user.model'
 import { CronModel } from 'src/cron/cron.model'
 import { TReaction } from './user.controller'
 import { identity } from 'rxjs'
+import { NotificationModel } from 'src/notification/notification.model'
 
 @Injectable()
 export class UserService {
 	constructor(
 		@InjectModel(UserModel) private readonly userModel: ModelType<UserModel>,
-		@InjectModel(CronModel) private readonly cronModel: ModelType<CronModel>
+		@InjectModel(CronModel) private readonly cronModel: ModelType<CronModel>,
+		@InjectModel(NotificationModel)
+		private readonly notificationModel: ModelType<NotificationModel>
 	) {}
 
 	async getAllProfiles(): Promise<DocumentType<any>> {
@@ -100,7 +103,6 @@ export class UserService {
 		let user = await this.userModel.findById(_id)
 		user.lastName = data.lastName
 		user.firstName = data.firstName
-		user.avatar = data.avatar
 		await user.save()
 		return user
 	}
@@ -303,7 +305,8 @@ export class UserService {
 
 	async addFriend(
 		id: string,
-		friendId: { friendId: string; status: '0' | '1' | '2' | '3' }
+		friendId: { friendId: string; status: '0' | '1' | '2' | '3' },
+		sendNotification: (deviceToken: string, message2: string) => Promise<void>
 	): Promise<DocumentType<any> | null> {
 		const user = await this.userModel.findById(id).exec()
 		const friendUser = await this.userModel.findById(friendId.friendId).exec()
@@ -354,7 +357,15 @@ export class UserService {
 			let newReq2 = { _id: user._id, status: '2' as '2' }
 			user.friendship.push(newReq1)
 			friendUser.friendship.push(newReq2)
-			status = '2'
+			const notifyToken = await this.notificationModel.findById(
+				friendId.friendId.toString()
+			)
+			if (notifyToken) {
+				await sendNotification(
+					notifyToken.deviceToken,
+					'They want to add you as a friend'
+				)
+			}
 		} else if (friendId.status === '3') {
 			//add friends
 			for (let i = 0; i < user.friendship.length; i++) {
@@ -573,8 +584,6 @@ export class UserService {
 		return reactions
 	}
 	async getReaction(data: { created: string; userId: string }) {
-		console.log(data)
-
 		const userByPhoto = await this.userModel.findById(data.userId).exec()
 		if (!userByPhoto) return
 

@@ -17,6 +17,8 @@ export class NotificationService {
 		if (!Expo.isExpoPushToken(deviceToken)) {
 			console.error(`expo-push-token is not a valid Expo push token`)
 		}
+	
+		
 		const messages = []
 		//user.map()
 		const message = {
@@ -45,16 +47,21 @@ export class NotificationService {
 		}
 	}
 	async addNotificationToken(deviceToken: string, _id: string) {
+		const userByDeviceToken = await this.NotificationModel.findById(deviceToken)
+		if (userByDeviceToken) return { message: true }
 		const user = await this.NotificationModel.findById(_id)
+		if (user) {
+			user.deviceToken = deviceToken
+			await user.save()
+			return { message: true }
+		}
+		
 		if (!user) {
 			const token = new this.NotificationModel({
 				_id,
 				deviceToken,
 			})
 			await token.save()
-		} else {
-			user.deviceToken = deviceToken
-			await user.save()
 		}
 		return { message: true }
 	}
@@ -66,9 +73,11 @@ export class NotificationService {
 		user.map((user) => {
 			const message = {
 				to: user.deviceToken,
+				sound: 'default',
 				data: { extraData: 'Some data' },
 				title: '🙈 Time to BePrime 🙈',
 				body: message2,
+				_displayInForeground: true,
 			}
 			messages.push(message)
 		})

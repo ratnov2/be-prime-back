@@ -17,9 +17,6 @@ export class UpdateInfoDto {
 
 	@IsString()
 	lastName: string
-
-	@IsString()
-	avatar: string
 }
 export class UpdateDtoFavoritePhotos {
 	key: 'photoOne' | 'photoTwo' | 'photoThree'

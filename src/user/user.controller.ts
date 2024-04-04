@@ -24,12 +24,14 @@ import { IdValidationPipe } from 'src/pipes/id.validation.pipe'
 import { UserModel } from './user.model'
 import { Types } from 'mongoose'
 import { MyCronService } from 'src/cron/cron.cervice'
+import { NotificationService } from 'src/notification/notification.service'
 
 @Controller('users')
 export class UserController {
 	constructor(
 		private readonly userService: UserService,
-		private readonly cronService: MyCronService
+		private readonly cronService: MyCronService,
+		private readonly notificationService: NotificationService
 	) {}
 
 	@Get('profile')
@@ -156,7 +158,8 @@ export class UserController {
 		@User('_id') _id: string,
 		@Body() data: { friendId: string; status: '0' | '1' | '2' | '3' }
 	) {
-		return this.userService.addFriend(_id, data)
+		const sendNotification = this.notificationService.sendNotification
+		return this.userService.addFriend(_id, data,sendNotification)
 	}
 	@Get('friends/all-friends')
 	@Auth()
