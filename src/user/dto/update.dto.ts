@@ -21,10 +21,12 @@ export class UpdateInfoDto {
 export class UpdateDtoFavoritePhotos {
 	key: 'photoOne' | 'photoTwo' | 'photoThree'
 
-	@MinLength(6, { message: 'Password cannot be less than 6 characters' })
 	@IsString()
-	photo: 'string'
+	frontPhoto: string
 
 	@IsString()
-	created: 'string'
+	backPhoto: string
+
+	@IsString()
+	created: string
 }

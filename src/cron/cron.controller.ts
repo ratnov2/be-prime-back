@@ -1,10 +1,12 @@
-import { Controller, Post, Body } from '@nestjs/common'
+import { Controller, Post, Body, Get } from '@nestjs/common'
 import { Model } from 'mongoose'
 import * as cron from 'node-cron'
 import { InjectModel } from 'nestjs-typegoose'
 import { NotificationService } from 'src/notification/notification.service'
 import { CronModel } from './cron.model'
 import { MyCronService } from './cron.cervice'
+import { Auth } from 'src/auth/decorators/auth.decorator'
+import { User } from 'src/user/decorators/user.decorator'
 
 @Controller('notifications')
 export class CronController {
@@ -39,6 +41,11 @@ export class CronController {
 				await this.cronService.saveCronTime(cronTime, sends)
 			}, randomHours * 3600 * 1000 + randomMinutes * 60 * 1000 + randomSeconds * 1000)
 		})
+	}
+	@Post('set-cron-time')
+	@Auth('user')
+	async getProfile(@Body() data: { date: string }) {
+		return this.cronService.setCronTime(data.date)
 	}
 }
 

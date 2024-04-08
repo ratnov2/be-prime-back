@@ -118,6 +118,11 @@ export class UserController {
 	async getUsers(@Query('searchTerm') searchTerm?: string) {
 		return this.userService.getAll(searchTerm)
 	}
+	@Get('/ADMIN-REUZE')
+	@Auth()
+	async reuze() {
+		return this.userService.adminReuse()
+	}
 	@Get(':id')
 	@Auth()
 	async getUser(@Param('id', IdValidationPipe) id: string) {
@@ -142,6 +147,8 @@ export class UserController {
 		if (!deletedDoc) throw new NotFoundException('Movie not found')
 	}
 
+	
+
 	@Post('user-by-name')
 	@Auth()
 	async findUsersByName(
@@ -159,7 +166,7 @@ export class UserController {
 		@Body() data: { friendId: string; status: '0' | '1' | '2' | '3' }
 	) {
 		const sendNotification = this.notificationService.sendNotification
-		return this.userService.addFriend(_id, data,sendNotification)
+		return this.userService.addFriend(_id, data, sendNotification)
 	}
 	@Get('friends/all-friends')
 	@Auth()

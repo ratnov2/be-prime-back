@@ -37,7 +37,6 @@ export class FilesService {
 		const writeFileFolder = `${uploadFolder}/${randomName}`
 
 		const user2 = await this.UserModel.findById(user._id).exec()
-		if (user2.avatar) await emptyDir(`uploads/avatar/${user2.id}`)
 		await ensureDir(uploadFolder)
 		if (folder === 'avatar') {
 			const res: any = await Promise.all(

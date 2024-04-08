@@ -46,6 +46,10 @@ export class UserService {
 			})
 			fields.latestPhoto.photoReactions = reactions
 		}
+		for (let i = 0; i < fields.calendarPhotos.length; i++) {
+			fields.calendarPhotos[i].comments = fields.calendarPhotos[i].comments
+				.length as any
+		}
 
 		return fields
 	}
@@ -64,18 +68,33 @@ export class UserService {
 		if (!user) throw new NotFoundException('user not found')
 		if (defaultKeys.indexOf(key) === -1)
 			throw new BadGatewayException('Bad Key')
-		if (!data.photo) throw new BadGatewayException('Bad photo')
 
 		let OBJ = { ...user.favoritePhotos }
-		OBJ[key] = {
-			photo: data.photo,
-			created: data.created,
+		if (!!data.frontPhoto) {
+			OBJ[key] = {
+				frontPhoto: data.frontPhoto,
+				backPhoto: data.backPhoto,
+				created: data.created,
+			}
+		} else {
+			OBJ[key] = null
 		}
 		user.favoritePhotos = OBJ
 		await user.save()
 		return { message: true }
 	}
-
+	async adminReuse() {
+		const user = await this.userModel.find()
+		if (!user) return false
+		user.map(async (user) => {
+			user.favoritePhotos = {
+				photoOne: null,
+				photoThree: null,
+				photoTwo: null,
+			}
+			await user.save()
+		})
+	}
 	// async updateProfile(_id: string, data: UpdateDto) {
 	// 	const user = await this.userModel.findById(_id)
 	// 	const isSameUser = await this.userModel.findOne({ email: data.email })
@@ -168,7 +187,7 @@ export class UserService {
 				  }
 				: null
 		}
-	
+
 		return users
 	}
 	async getAvatarById(id: string) {
@@ -220,6 +239,8 @@ export class UserService {
 				userId: friendsPhotos[i]._id as unknown as string,
 			})
 			friendsPhotos[i].latestPhoto.photoReactions = reactions
+			friendsPhotos[i].latestPhoto.comments =
+				friendsPhotos[i].latestPhoto.comments.length
 		}
 		return friendsPhotos
 	}
@@ -263,6 +284,8 @@ export class UserService {
 				userId: populatedLatestPhotos[i]._id as unknown as string,
 			})
 			populatedLatestPhotos[i].latestPhoto.photoReactions = reactions
+			populatedLatestPhotos[i].latestPhoto.comments = populatedLatestPhotos[i]
+				.latestPhoto.comments.length as any
 		}
 
 		return populatedLatestPhotos
@@ -414,7 +437,6 @@ export class UserService {
 		let result = {
 			friendship: await Promise.all(
 				user.friendship.map(async (friend) => {
-					//console.log(friend.status)
 					let req = await this.userModel.findById(friend._id)
 					let result = {
 						friends: returnUserFields(req),
@@ -425,7 +447,10 @@ export class UserService {
 			),
 			_id: user._id,
 		}
-
+		for (let i = 0; i < result.friendship.length; i++) {
+			result.friendship[i].friends.calendarPhotos = undefined
+			result.friendship[i].friends.latestPhoto = undefined
+		}
 		return result
 	}
 	async addMainMessage(id: string, message: string, created: Date) {
@@ -597,6 +622,7 @@ export class UserService {
 			}
 			reaction.push(obj)
 		}
+
 		return reaction
 	}
 

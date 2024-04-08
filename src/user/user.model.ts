@@ -62,15 +62,18 @@ export class UserModel extends TimeStamps {
 	})
 	favoritePhotos: {
 		photoOne: {
-			photo: string
+			frontPhoto: string
+			backPhoto: string
 			created: string
 		} | null
 		photoTwo: {
-			photo: string
+			frontPhoto: string
+			backPhoto: string
 			created: string
 		} | null
 		photoThree: {
-			photo: string
+			frontPhoto: string
+			backPhoto: string
 			created: string
 		} | null
 	}

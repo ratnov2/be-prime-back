@@ -39,4 +39,12 @@ export class MyCronService {
 			})
 		}
 	}
+	async setCronTime(date: string): Promise<Date> {
+		if (!date) return new Date()
+		const existingCronData = await this.cronModel.findOne()
+		if (!existingCronData.lastRunTime) return undefined
+		existingCronData.lastRunTime = new Date(date)
+		await existingCronData.save()
+	
+	}
 }
